@@ -3,7 +3,7 @@ import { usePlayer } from '../context/PlayerContext';
 import { getCoverArtUrl } from '../utils/cloudinary';
 
 const VinylScratch: React.FC = () => {
-  const { currentSong, isPlaying, setPlaybackRate } = usePlayer();
+  const { currentSong, isPlaying, setPlaybackRate, currentTime, duration, seekTo } = usePlayer();
   const [isScratching, setIsScratching] = useState(false);
   const lastXRef = useRef(0);
   const lastTimeRef = useRef(0);
@@ -22,10 +22,18 @@ const VinylScratch: React.FC = () => {
     
     if (dt > 0) {
       const velocity = dx / dt; // pixels per ms
-      let rate = velocity * 2;
-      rate = Math.max(-3, Math.min(3, rate));
-      if (Math.abs(rate) < 0.1) rate = 0;
+      let rate = Math.abs(velocity * 2);
+      rate = Math.max(0.1, Math.min(3, rate)); // Keep rate valid
+
+      // Set forward playback rate to simulate pitch shift
       setPlaybackRate(rate);
+
+      // If moving backward, manually seek backwards since negative playbackRate throws an error
+      if (velocity < 0) {
+        seekTo(Math.max(0, (currentTime - (Math.abs(dx) / 100)) / duration));
+      } else if (velocity > 0) {
+        seekTo(Math.min(1, (currentTime + (Math.abs(dx) / 100)) / duration));
+      }
     }
     
     lastXRef.current = e.clientX;
