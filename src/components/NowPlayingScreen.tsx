@@ -3,7 +3,7 @@
  * Full-screen Spotify-style Now Playing view for mobile.
  * Opens when user taps the mini player bar.
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { getCoverArtUrl } from '../utils/cloudinary';
 import {
@@ -19,6 +19,76 @@ interface NowPlayingScreenProps {
   onClose: () => void;
   onMoreOptions: () => void;
 }
+
+const LyricsCard: React.FC<{ artist: string, title: string }> = ({ artist, title }) => {
+  const [lyrics, setLyrics] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    setLyrics(null);
+    setError(false);
+    
+    // Clean up artist and title for better API matching
+    const cleanArtist = artist.split(',')[0].trim();
+    const cleanTitle = title.replace(/\(.*?\)/g, '').trim();
+
+    if (!cleanArtist || cleanArtist === 'Unknown Artist') {
+      setError(true);
+      return;
+    }
+
+    setLoading(true);
+    fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(cleanArtist)}/${encodeURIComponent(cleanTitle)}`)
+      .then(res => {
+        if (!res.ok) throw new Error('Not found');
+        return res.json();
+      })
+      .then(data => {
+        if (data.lyrics) {
+          // Remove "Paroles de la chanson" prefix from ovh
+          const cleanedLyrics = data.lyrics.replace(/Paroles de la chanson.+?[\r\n]+/i, '');
+          setLyrics(cleanedLyrics);
+        } else {
+          setError(true);
+        }
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  }, [artist, title]);
+
+  return (
+    <div style={{
+      backgroundColor: 'var(--dynamic-bg-color, #2a5a3f)', // Slightly lighter than background
+      borderRadius: '12px',
+      padding: '24px',
+      marginTop: '32px',
+      marginBottom: '32px',
+      minHeight: '200px',
+      transition: 'background-color 0.5s ease',
+      filter: 'brightness(1.15)',
+    }}>
+      <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 800 }}>Lyrics</h3>
+      {loading ? (
+        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '24px', fontWeight: 700 }}>Loading lyrics...</p>
+      ) : error ? (
+        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '16px' }}>We couldn't find lyrics for this song.</p>
+      ) : lyrics ? (
+        <pre style={{
+          whiteSpace: 'pre-wrap',
+          fontFamily: 'inherit',
+          fontSize: '24px',
+          fontWeight: 700,
+          lineHeight: '1.5',
+          margin: 0,
+          color: 'white'
+        }}>
+          {lyrics}
+        </pre>
+      ) : null}
+    </div>
+  );
+};
 
 const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose, onMoreOptions }) => {
   const {
@@ -48,6 +118,7 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose, onMoreOpti
       background: 'var(--dynamic-bg-color, #1e3a29)',
       display: 'flex', flexDirection: 'column',
       animation: 'npSlideUp 0.32s cubic-bezier(0.32,0.72,0,1)',
+      overflowY: 'auto'
     }}>
       <style>{`
         @keyframes npSlideUp {
@@ -66,7 +137,7 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose, onMoreOpti
       {activeMode === 'party' && <Visualizer />}
 
       {/* Content */}
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%', padding: '0 28px' }}>
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', minHeight: '100%', padding: '0 28px' }}>
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 'env(safe-area-inset-top, 16px)', marginTop: '16px' }}>
@@ -219,6 +290,11 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose, onMoreOpti
             <Volume2 size={18} />
           </button>
         </div>
+
+        {/* Lyrics Card */}
+        {activeMode !== 'karaoke' && activeMode !== 'vinyl' && activeMode !== 'party' && (
+          <LyricsCard artist={currentSong.artist} title={currentSong.title} />
+        )}
       </div>
     </div>
   );
