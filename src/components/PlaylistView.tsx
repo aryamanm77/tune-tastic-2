@@ -20,9 +20,15 @@ const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId, goHome }) => {
   const isQueue = playlistId === 'queue';
   const playlist: Playlist | null = (isLikedPlaylist || isQueue) ? null : playlists.find((p: Playlist) => p.id === playlistId);
   
-  const title = isLikedPlaylist ? "Liked Songs" : isQueue ? "Room Queue" : playlist?.name || "Unknown Playlist";
+  const title = isLikedPlaylist ? "Liked Songs" : isQueue ? "Queue" : playlist?.name || "Unknown Playlist";
   const { queue } = usePlayer() as any;
-  const songs: Song[] = isLikedPlaylist ? likedSongs : isQueue ? queue : (playlist?.songs || []);
+  let songs: Song[] = isLikedPlaylist ? likedSongs : isQueue ? queue : (playlist?.songs || []);
+  if (isQueue && currentSong) {
+    const currentIndex = queue.findIndex((s: Song) => s.id === currentSong.id);
+    if (currentIndex !== -1) {
+      songs = queue.slice(currentIndex + 1);
+    }
+  }
   const cover = (isLikedPlaylist || isQueue) ? null : playlist?.coverArt;
 
   const handlePlay = (song: Song) => {

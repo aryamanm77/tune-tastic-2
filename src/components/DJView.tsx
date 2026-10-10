@@ -3,7 +3,7 @@ import { usePlayer } from '../context/PlayerContext';
 import { getCoverArtUrl } from '../utils/cloudinary';
 import {
   Zap, AudioLines, Sparkles, Music2, Wind, Gauge,
-  Radio, HeartPulse, Orbit, Disc, Users, PhoneCall, Bot, Activity, Compass, Hexagon, Rocket, Moon
+  Radio, HeartPulse, Orbit, Disc, Users, PhoneCall, Bot, Activity, Compass, Hexagon, Rocket, Moon, Palette
 } from 'lucide-react';
 import TimeMachine from './TimeMachine';
 import GhostWhisperer from './GhostWhisperer';
@@ -228,7 +228,33 @@ const DJView: React.FC = () => {
           icon={<Sparkles size={20} />}
           title="Nebula Starfield UI"
           desc="Immersive space visualizer background"
-          right={<Toggle active={djState.nebulaMode ?? false} onClick={() => setDjState({ nebulaMode: !djState.nebulaMode })} />}
+          right={<Toggle active={djState.nebulaMode ?? false} onClick={() => setDjState({ nebulaMode: !djState.nebulaMode, themeBackground: 'none' })} />}
+        />
+
+        <Row
+          icon={<Palette size={20} />}
+          title="Animated Backgrounds"
+          desc="Change the dynamic app background"
+          right={
+            <select 
+              value={djState.themeBackground || 'none'}
+              onChange={e => setDjState({ themeBackground: e.target.value, nebulaMode: false })}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: 'white',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                outline: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="none">Default</option>
+              <option value="theme-ocean-waves">Ocean Waves</option>
+              <option value="theme-cyber-matrix">Cyber Matrix</option>
+              <option value="theme-deep-space">Deep Space</option>
+            </select>
+          }
         />
 
         <Row

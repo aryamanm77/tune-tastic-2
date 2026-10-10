@@ -52,8 +52,8 @@ interface PlayerContextType {
   deletePlaylist: (playlistId: string) => void;
   renamePlaylist: (playlistId: string, newName: string) => void;
   addToQueue: (song: Song) => void;
-  djState: { bass: number; spin8D: boolean; nightcore: boolean; reverb?: number; speed?: number; lofi?: boolean; karaoke?: boolean; tremolo?: boolean; phaser?: boolean; vinyl?: boolean; chorus?: boolean; telephone?: boolean; alien?: boolean; era?: number; hapticBass?: boolean; spatialAudio?: boolean; motionDJ?: boolean; astralMode: boolean; zeroGravity: boolean; nebulaMode: boolean; isWarping: boolean };
-  setDjState: (state: Partial<{ bass: number; spin8D: boolean; nightcore: boolean; reverb: number; speed: number; lofi: boolean; karaoke: boolean; tremolo: boolean; phaser: boolean; vinyl: boolean; chorus: boolean; telephone: boolean; alien: boolean; era: number; hapticBass: boolean; spatialAudio: boolean; motionDJ: boolean; astralMode: boolean; zeroGravity: boolean; nebulaMode: boolean; isWarping: boolean }>) => void;
+  djState: { bass: number; spin8D: boolean; nightcore: boolean; reverb?: number; speed?: number; lofi?: boolean; karaoke?: boolean; tremolo?: boolean; phaser?: boolean; vinyl?: boolean; chorus?: boolean; telephone?: boolean; alien?: boolean; era?: number; hapticBass?: boolean; spatialAudio?: boolean; motionDJ?: boolean; astralMode: boolean; zeroGravity: boolean; nebulaMode: boolean; isWarping: boolean; themeBackground?: string };
+  setDjState: (state: Partial<{ bass: number; spin8D: boolean; nightcore: boolean; reverb: number; speed: number; lofi: boolean; karaoke: boolean; tremolo: boolean; phaser: boolean; vinyl: boolean; chorus: boolean; telephone: boolean; alien: boolean; era: number; hapticBass: boolean; spatialAudio: boolean; motionDJ: boolean; astralMode: boolean; zeroGravity: boolean; nebulaMode: boolean; isWarping: boolean; themeBackground: string }>) => void;
   getAnalyserData: () => Uint8Array;
   setPlaybackRate: (rate: number) => void;
   setPan: (panValue: number) => void;
@@ -235,7 +235,7 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     tremolo: false, phaser: false, vinyl: false,
     chorus: false, telephone: false, alien: false,
     era: 2026, hapticBass: false, spatialAudio: false, motionDJ: false, astralMode: false,
-    zeroGravity: false, nebulaMode: false, isWarping: false
+    zeroGravity: false, nebulaMode: false, isWarping: false, themeBackground: 'none'
   });
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);

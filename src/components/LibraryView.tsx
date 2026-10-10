@@ -84,7 +84,7 @@ const LibraryView: React.FC<LibraryViewProps> = ({ onOpenPlaylist, onOpenUploads
         >
           <Music size={64} style={{ position: 'absolute', bottom: '-10px', right: '-10px', opacity: 0.1, color: 'white' }} />
           <div>
-            <h2 style={{ fontSize: '32px', marginBottom: '8px', color: 'white' }}>Room Queue</h2>
+            <h2 style={{ fontSize: '32px', marginBottom: '8px', color: 'white' }}>Queue</h2>
             <p style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 'bold' }}>Up next</p>
           </div>
         </div>

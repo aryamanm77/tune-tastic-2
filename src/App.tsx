@@ -19,12 +19,16 @@ const AppContent: React.FC = () => {
   const { djState } = usePlayer();
 
   useEffect(() => {
+    // Clear old themes
+    document.body.classList.remove('nebula-active', 'theme-ocean-waves', 'theme-cyber-matrix', 'theme-deep-space');
+    
+    // Add new theme
     if (djState.nebulaMode) {
       document.body.classList.add('nebula-active');
-    } else {
-      document.body.classList.remove('nebula-active');
+    } else if (djState.themeBackground && djState.themeBackground !== 'none') {
+      document.body.classList.add(djState.themeBackground);
     }
-  }, [djState.nebulaMode]);
+  }, [djState.nebulaMode, djState.themeBackground]);
 
   const navigateToPlaylist = (id: string) => {
     setActivePlaylistId(id);
