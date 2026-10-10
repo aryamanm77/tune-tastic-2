@@ -47,7 +47,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab }) => {
         onClick={() => setActiveTab('downloads')}
       >
         <Download size={24} />
-        <span>Offline</span>
+        <span>Downloads</span>
       </button>
 
       <button 
