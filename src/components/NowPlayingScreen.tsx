@@ -9,15 +9,15 @@ import { getCoverArtUrl } from '../utils/cloudinary';
 import {
   Play, Pause, SkipBack, SkipForward, Shuffle, Repeat,
   Heart, ChevronDown, MoreHorizontal, Volume2, VolumeX,
-  Sparkles, Disc, Mic2, Image as ImageIcon
+  Sparkles, Disc, Mic2, Image as ImageIcon, Download, Plus
 } from 'lucide-react';
 import Visualizer from './Visualizer';
 import VinylScratch from './VinylScratch';
 import KaraokeMode from './KaraokeMode';
+import AddToPlaylistModal from './AddToPlaylistModal';
 
 interface NowPlayingScreenProps {
   onClose: () => void;
-  onMoreOptions: () => void;
 }
 
 const LyricsCard: React.FC<{ artist: string, title: string }> = ({ artist, title }) => {
@@ -39,14 +39,14 @@ const LyricsCard: React.FC<{ artist: string, title: string }> = ({ artist, title
     }
 
     setLoading(true);
-    fetch(`https://lrclib.net/api/get?artist_name=${encodeURIComponent(cleanArtist)}&track_name=${encodeURIComponent(cleanTitle)}`)
+    fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(cleanArtist + ' ' + cleanTitle)}`)
       .then(res => {
         if (!res.ok) throw new Error('Not found');
         return res.json();
       })
       .then(data => {
-        if (data.plainLyrics) {
-          setLyrics(data.plainLyrics);
+        if (data && data.length > 0 && data[0].plainLyrics) {
+          setLyrics(data[0].plainLyrics);
         } else {
           setError(true);
         }
@@ -91,16 +91,19 @@ const LyricsCard: React.FC<{ artist: string, title: string }> = ({ artist, title
   );
 };
 
-const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose, onMoreOptions }) => {
+const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose }) => {
   const {
     currentSong, isPlaying, progress, currentTime, duration, volume,
     isShuffled, repeatMode,
     togglePlayPause, nextSong, prevSong, seekTo, setVolume,
     toggleShuffle, cycleRepeat, toggleLike, isLiked,
+    downloadSong, downloadedSongs, downloadProgress
   } = usePlayer();
 
   const [touching, setTouching] = useState(false);
   const [activeMode, setActiveMode] = useState<'normal' | 'party' | 'vinyl' | 'karaoke'>('normal');
+  const [showMenu, setShowMenu] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   if (!currentSong) return null;
 
@@ -148,9 +151,33 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose, onMoreOpti
           <div style={{ textAlign: 'center' }}>
             <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, letterSpacing: '1px', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase' }}>Now Playing</p>
           </div>
-          <button onClick={onMoreOptions} style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer', padding: '8px', display: 'flex' }}>
-            <MoreHorizontal size={24} />
-          </button>
+          <div style={{ position: 'relative' }}>
+            <button onClick={() => setShowMenu(!showMenu)} style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer', padding: '8px', display: 'flex' }}>
+              <MoreHorizontal size={24} />
+            </button>
+            {showMenu && (
+              <div style={{
+                position: 'absolute', top: '100%', right: 0,
+                backgroundColor: '#282828', borderRadius: '4px',
+                boxShadow: '0 8px 16px rgba(0,0,0,0.8)',
+                zIndex: 100, minWidth: '200px', overflow: 'hidden'
+              }}>
+                <button 
+                  onClick={() => { setShowMenu(false); setShowAddModal(true); }}
+                  style={{ width: '100%', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left' }}
+                >
+                  <Plus size={16} /> Add to Playlist
+                </button>
+                <button 
+                  onClick={() => { setShowMenu(false); downloadSong(currentSong); }}
+                  style={{ width: '100%', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left' }}
+                >
+                  <Download size={16} /> 
+                  {downloadedSongs.has(currentSong.id) ? 'Downloaded' : downloadProgress[currentSong.id] !== undefined ? 'Downloading...' : 'Download'}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Fun Modes Toggle */}
@@ -295,6 +322,8 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose, onMoreOpti
         {/* Lyrics Card (Always shown so user can scroll down to it) */}
         <LyricsCard artist={currentSong.artist} title={currentSong.title} />
       </div>
+      
+      {showAddModal && <AddToPlaylistModal song={currentSong} onClose={() => setShowAddModal(false)} />}
     </div>
   );
 };

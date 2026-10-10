@@ -259,7 +259,6 @@ const Player: React.FC = () => {
       {showNowPlaying && createPortal(
         <NowPlayingScreen
           onClose={() => setShowNowPlaying(false)}
-          onMoreOptions={() => setShowNowPlaying(false)}
         />,
         document.body
       )}

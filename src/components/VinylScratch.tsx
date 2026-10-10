@@ -43,7 +43,8 @@ const VinylScratch: React.FC = () => {
         boxShadow: '0 24px 64px rgba(0,0,0,0.8)',
         border: '12px solid #111',
         position: 'relative',
-        animation: (!isScratching && isPlaying) ? 'spin 3s linear infinite' : 'none',
+        animation: 'spin 3s linear infinite',
+        animationPlayState: (!isScratching && isPlaying) ? 'running' : 'paused',
         cursor: isScratching ? 'grabbing' : 'grab',
         touchAction: 'none',
         margin: '0 auto'

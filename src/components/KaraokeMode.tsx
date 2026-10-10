@@ -19,15 +19,14 @@ const KaraokeMode: React.FC = () => {
       return;
     }
 
-    fetch(`https://lrclib.net/api/get?artist_name=${encodeURIComponent(cleanArtist)}&track_name=${encodeURIComponent(cleanTitle)}`)
+    fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(cleanArtist + ' ' + cleanTitle)}`)
       .then(res => {
         if (!res.ok) throw new Error('Not found');
         return res.json();
       })
       .then(data => {
-        if (data.syncedLyrics) {
-          // Parse LRC format: [mm:ss.xx] Lyric text
-          const lines = data.syncedLyrics.split('\n');
+        if (data && data.length > 0 && data[0].syncedLyrics) {
+          const lines = data[0].syncedLyrics.split('\n');
           const parsed = lines.map((line: string) => {
             const match = line.match(/^\[(\d{2}):(\d{2}\.\d{2,3})\] (.*)$/);
             if (match) {
@@ -45,8 +44,8 @@ const KaraokeMode: React.FC = () => {
         }
         
         // Fallback to plain lyrics with pseudo-sync if syncedLyrics not available or parsing failed
-        if (data.plainLyrics) {
-          const lines = data.plainLyrics.split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0);
+        if (data && data.length > 0 && data[0].plainLyrics) {
+          const lines = data[0].plainLyrics.split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0);
           if (lines.length > 0) {
             const safeDuration = duration > 0 ? duration : 180;
             const timePerLine = safeDuration / (lines.length + 2); 
