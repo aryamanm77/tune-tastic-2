@@ -29,7 +29,7 @@ const ItunesSearchView: React.FC = () => {
   const handlePlay = (song: Song) => {
     if (currentSong?.id === song.id) { togglePlayPause(); return; }
     if (!song.audioUrl) return;
-    playSong(song);
+    playSong(song, [song]);
   };
 
   const formatTime = (ms: number) => {

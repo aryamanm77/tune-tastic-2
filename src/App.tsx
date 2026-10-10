@@ -37,6 +37,27 @@ const AppContent: React.FC = () => {
 
   return (
     <>
+      {/* Real Video Background */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          objectFit: 'cover',
+          zIndex: -2,
+          opacity: 0.6,
+          filter: 'hue-rotate(30deg) brightness(0.8)'
+        }}
+      >
+        <source src="https://assets.mixkit.co/videos/preview/mixkit-purple-and-blue-neon-waves-22879-large.mp4" type="video/mp4" />
+      </video>
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: -1, pointerEvents: 'none' }} />
       <NebulaBackground />
       <div className="app-container" style={{ position: 'relative', zIndex: 10 }}>
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onOpenPlaylist={navigateToPlaylist} />

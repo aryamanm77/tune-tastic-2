@@ -32,8 +32,13 @@ const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId, goHome }) => {
   const cover = (isLikedPlaylist || isQueue) ? null : playlist?.coverArt;
 
   const handlePlay = (song: Song) => {
-    if (currentSong?.id === song.id) togglePlayPause();
-    else playSong(song, songs);
+    if (currentSong?.id === song.id) {
+      togglePlayPause();
+    } else if (isQueue) {
+      playSong(song);
+    } else {
+      playSong(song, songs);
+    }
   };
 
   const removeSong = (songId: string) => {
@@ -177,6 +182,13 @@ const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId, goHome }) => {
           )}
         </div>
 
+        {songs.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '64px 24px', color: 'var(--text-secondary)' }}>
+            <Music size={64} style={{ margin: '0 auto 24px', opacity: 0.5 }} />
+            <h2 style={{ color: 'white', marginBottom: '8px' }}>Nothing here</h2>
+            <p>Play a song or add something.</p>
+          </div>
+        ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ color: 'var(--text-secondary)', borderBottom: '1px solid #282828', fontSize: '14px' }}>
@@ -261,12 +273,6 @@ const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId, goHome }) => {
             })}
           </tbody>
         </table>
-
-        {songs.length === 0 && (
-          <div style={{ textAlign: 'center', marginTop: '64px', color: 'var(--text-secondary)' }}>
-            <h2 style={{ color: 'var(--text-primary)', marginBottom: '8px' }}>It's a bit empty here...</h2>
-            <p>Search for songs and tap ··· to add them to this playlist!</p>
-          </div>
         )}
       </div>
 
