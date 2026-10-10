@@ -10,9 +10,11 @@ import BottomNav from './components/BottomNav';
 import DJView from './components/DJView';
 import ItunesSearchView from './components/ItunesSearchView';
 import NebulaBackground from './components/NebulaBackground';
+import DownloadsView from './components/DownloadsView';
+import UploadsView from './components/UploadsView';
 
 const AppContent: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'home' | 'search' | 'premium' | 'library' | 'playlist' | 'dj'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'search' | 'premium' | 'library' | 'playlist' | 'dj' | 'downloads' | 'uploads'>('home');
   const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null);
   const { djState } = usePlayer();
 
@@ -37,10 +39,12 @@ const AppContent: React.FC = () => {
       
       {activeTab === 'home' && <MainView />}
       {activeTab === 'search' && <SearchView />}
-      {activeTab === 'library' && <LibraryView onOpenPlaylist={navigateToPlaylist} />}
+      {activeTab === 'library' && <LibraryView onOpenPlaylist={navigateToPlaylist} onOpenUploads={() => setActiveTab('uploads')} />}
       {activeTab === 'playlist' && <PlaylistView playlistId={activePlaylistId} goHome={() => setActiveTab('home')} />}
       {activeTab === 'dj' && <DJView />}
       {activeTab === 'premium' && <ItunesSearchView />}
+      {activeTab === 'downloads' && <DownloadsView />}
+      {activeTab === 'uploads' && <UploadsView />}
       
       <Player />
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />

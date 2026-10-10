@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useRef, useEffect, useCallback, ReactNode } from 'react';
 import { getAudioUrl } from '../utils/cloudinary';
+import { getDownloadedSong, saveDownloadedSong, deleteDownloadedSong, getAllDownloadedSongs, getUploadedSong, saveUploadedSong, deleteUploadedSong, getAllUploadedSongs } from '../db';
 
 export interface Song {
   id: string;
@@ -55,6 +56,13 @@ interface PlayerContextType {
   getAnalyserData: () => Uint8Array;
   setPlaybackRate: (rate: number) => void;
   setPan: (panValue: number) => void;
+  downloadedSongs: Set<string>;
+  downloadProgress: Record<string, number>;
+  downloadSong: (song: Song) => Promise<void>;
+  deleteDownload: (songId: string) => Promise<void>;
+  uploadedSongs: Song[];
+  uploadSong: (song: Song, blob: Blob) => Promise<void>;
+  deleteUpload: (songId: string) => Promise<void>;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -86,6 +94,19 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const saved = localStorage.getItem('tunetastic_recent');
     return saved ? JSON.parse(saved) : [];
   });
+
+  const [downloadedSongs, setDownloadedSongs] = useState<Set<string>>(new Set());
+  const [downloadProgress, setDownloadProgress] = useState<Record<string, number>>({});
+  const [uploadedSongs, setUploadedSongs] = useState<Song[]>([]);
+
+  useEffect(() => {
+    getAllDownloadedSongs().then(songs => {
+      setDownloadedSongs(new Set(songs.map(s => s.songId)));
+    });
+    getAllUploadedSongs().then(uploads => {
+      setUploadedSongs(uploads.map(u => u.songData));
+    });
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('tunetastic_playlists', JSON.stringify(playlists));
@@ -578,7 +599,7 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   }, [isPlaying]);
 
-  const playSong = (song: Song) => {
+  const playSong = async (song: Song) => {
     initAudioContext();
     if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
       audioContextRef.current.resume();
@@ -593,7 +614,24 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     const audio = audioRef.current;
     if (audio) {
-      audio.src = song.audioUrl || getAudioUrl(song.audioId);
+      try {
+        if (song.audioId.startsWith('upload:')) {
+          const uploaded = await getUploadedSong(song.id);
+          if (uploaded) {
+            audio.src = URL.createObjectURL(uploaded.audioBlob);
+          }
+        } else {
+          const downloaded = await getDownloadedSong(song.id);
+          if (downloaded) {
+            audio.src = URL.createObjectURL(downloaded.audioBlob);
+          } else {
+            audio.src = song.audioUrl || getAudioUrl(song.audioId);
+          }
+        }
+      } catch (e) {
+        audio.src = song.audioUrl || getAudioUrl(song.audioId);
+      }
+      
       audio.load();
       audio.play().then(() => {
         setIsPlaying(true);
@@ -602,6 +640,52 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         console.error("Playback failed", err);
       });
     }
+  };
+
+  const downloadSong = async (song: Song) => {
+    if (downloadedSongs.has(song.id)) return;
+    
+    setDownloadProgress(prev => ({ ...prev, [song.id]: 0 }));
+    try {
+      const url = song.audioUrl || getAudioUrl(song.audioId);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Network response was not ok');
+      const blob = await response.blob();
+      
+      await saveDownloadedSong(song, blob);
+      setDownloadedSongs(prev => new Set(prev).add(song.id));
+      setDownloadProgress(prev => {
+        const next = { ...prev };
+        delete next[song.id];
+        return next;
+      });
+    } catch (e) {
+      console.error("Download failed", e);
+      setDownloadProgress(prev => {
+        const next = { ...prev };
+        delete next[song.id];
+        return next;
+      });
+    }
+  };
+
+  const deleteDownload = async (songId: string) => {
+    await deleteDownloadedSong(songId);
+    setDownloadedSongs(prev => {
+      const next = new Set(prev);
+      next.delete(songId);
+      return next;
+    });
+  };
+
+  const uploadSong = async (song: Song, blob: Blob) => {
+    await saveUploadedSong(song, blob);
+    setUploadedSongs(prev => [...prev, song]);
+  };
+
+  const deleteUpload = async (songId: string) => {
+    await deleteUploadedSong(songId);
+    setUploadedSongs(prev => prev.filter(s => s.id !== songId));
   };
 
   const togglePlayPause = () => {
@@ -745,7 +829,14 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       setDjState,
       getAnalyserData,
       setPlaybackRate,
-      setPan
+      setPan,
+      downloadedSongs,
+      downloadProgress,
+      downloadSong,
+      deleteDownload,
+      uploadedSongs,
+      uploadSong,
+      deleteUpload
     }}>
       {children}
     </PlayerContext.Provider>

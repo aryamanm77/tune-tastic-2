@@ -92,8 +92,8 @@ const Player: React.FC = () => {
       
       {/* Left: Song Info — tapping on mobile opens full screen player */}
       <div
-        style={{ width: '30%', display: 'flex', alignItems: 'center', gap: '16px' }}
-        onClick={() => { if (window.innerWidth < 768) setShowNowPlaying(true); }}
+        style={{ width: '30%', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer' }}
+        onClick={() => setShowNowPlaying(true)}
       >
         {currentSong ? (
           <>

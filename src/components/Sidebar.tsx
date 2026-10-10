@@ -1,11 +1,11 @@
 import React from 'react';
-import { Home, Search, Library, PlusSquare, Heart, Sliders, Sparkles } from 'lucide-react';
+import { Home, Search, Library, PlusSquare, Heart, Sliders, Sparkles, Download } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 import TuneTasticLogo from './TuneTasticLogo';
 
 interface SidebarProps {
   activeTab: string;
-  setActiveTab: (tab: 'home' | 'search' | 'library' | 'playlist' | 'dj' | 'premium') => void;
+  setActiveTab: (tab: 'home' | 'search' | 'library' | 'playlist' | 'dj' | 'premium' | 'downloads') => void;
   onOpenPlaylist: (id: string) => void;
 }
 
@@ -62,6 +62,12 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onOpenPlayli
           style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '14px', fontWeight: 'bold', color: activeTab === 'library' ? 'var(--text-primary)' : 'var(--text-secondary)' }}
         >
           <Library size={24} /> Your Library
+        </button>
+        <button 
+          onClick={() => setActiveTab('downloads')}
+          style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '14px', fontWeight: 'bold', color: activeTab === 'downloads' ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+        >
+          <Download size={24} /> Downloads
         </button>
         <button 
           onClick={() => setActiveTab('dj')}

@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { usePlayer, Song } from '../context/PlayerContext';
 import { getCoverArtUrl } from '../utils/cloudinary';
-import { Play, MoreHorizontal, Plus } from 'lucide-react';
+import { Play, MoreHorizontal, Plus, Download, Check, Loader } from 'lucide-react';
 import TuneTasticLogo from './TuneTasticLogo';
 import AddToPlaylistModal from './AddToPlaylistModal';
 
 const MainView: React.FC = () => {
-  const { songs, currentSong, playSong, togglePlayPause, createPlaylist, recentlyPlayed } = usePlayer();
+  const { songs, currentSong, playSong, togglePlayPause, createPlaylist, recentlyPlayed, downloadedSongs, downloadProgress, downloadSong } = usePlayer();
   const [modalSong, setModalSong] = useState<Song | null>(null);
   const [creatingPlaylist, setCreatingPlaylist] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
@@ -193,10 +193,31 @@ const MainView: React.FC = () => {
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>{song.artist !== 'Unknown Artist' ? song.artist : 'TuneTastic'}</p>
               </div>
+              
+              {/* Download Button */}
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  if (!downloadedSongs.has(song.id) && downloadProgress[song.id] === undefined) {
+                    downloadSong(song);
+                  }
+                }}
+                style={{ marginLeft: 'auto', marginRight: '8px', color: downloadedSongs.has(song.id) ? 'var(--spotify-green)' : 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: downloadedSongs.has(song.id) || downloadProgress[song.id] !== undefined ? 'default' : 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
+                aria-label="Download"
+              >
+                {downloadedSongs.has(song.id) ? (
+                  <Check size={18} />
+                ) : downloadProgress[song.id] !== undefined ? (
+                  <Loader size={18} className="spin-animation" style={{ animation: 'spin 1s linear infinite' }} />
+                ) : (
+                  <Download size={18} />
+                )}
+              </button>
+
               {/* Three-dot menu */}
               <button
                 onClick={e => { e.stopPropagation(); setModalSong(song); }}
-                style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', flexShrink: 0, display: 'flex', alignItems: 'center' }}
+                style={{ color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', flexShrink: 0, display: 'flex', alignItems: 'center' }}
                 aria-label="More options"
               >
                 <MoreHorizontal size={18} />

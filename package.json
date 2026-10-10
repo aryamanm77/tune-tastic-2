@@ -12,7 +12,9 @@
       "output": "release5"
     },
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "icon": "build/icon.png",
       "certificateFile": "build/cert.pfx",
       "certificatePassword": "password"
@@ -37,6 +39,7 @@
   },
   "dependencies": {
     "firebase": "^12.18.0",
+    "idb": "^8.0.4",
     "lucide-react": "^0.300.0",
     "music-metadata": "^11.14.0",
     "react": "^18.2.0",
