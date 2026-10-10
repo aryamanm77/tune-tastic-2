@@ -72,7 +72,10 @@ const LyricsCard: React.FC<{ artist: string, title: string }> = ({ artist, title
       {loading ? (
         <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '24px', fontWeight: 700 }}>Loading lyrics...</p>
       ) : error ? (
-        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '16px' }}>We couldn't find lyrics for this song.</p>
+        <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '16px', lineHeight: '1.5' }}>
+          <p>We couldn't find lyrics for this song in the public database.</p>
+          <p style={{ marginTop: '8px', fontSize: '14px', opacity: 0.8 }}>Try playing a more popular track, as the open lyrics API doesn't have every song.</p>
+        </div>
       ) : lyrics ? (
         <pre style={{
           whiteSpace: 'pre-wrap',
@@ -291,10 +294,8 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose, onMoreOpti
           </button>
         </div>
 
-        {/* Lyrics Card */}
-        {activeMode !== 'karaoke' && activeMode !== 'vinyl' && activeMode !== 'party' && (
-          <LyricsCard artist={currentSong.artist} title={currentSong.title} />
-        )}
+        {/* Lyrics Card (Always shown so user can scroll down to it) */}
+        <LyricsCard artist={currentSong.artist} title={currentSong.title} />
       </div>
     </div>
   );
