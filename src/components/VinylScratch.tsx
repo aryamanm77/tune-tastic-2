@@ -6,38 +6,26 @@ const VinylScratch: React.FC = () => {
   const { currentSong, isPlaying, setPlaybackRate, currentTime, duration, seekTo } = usePlayer();
   const [isScratching, setIsScratching] = useState(false);
   const lastXRef = useRef(0);
-  const lastTimeRef = useRef(0);
+  const scrubTimeRef = useRef(0);
   
   const handlePointerDown = (e: React.PointerEvent) => {
     setIsScratching(true);
     lastXRef.current = e.clientX;
-    lastTimeRef.current = Date.now();
-    setPlaybackRate(0); // Stop playback while holding
+    scrubTimeRef.current = currentTime; // Capture precise time on grab
+    setPlaybackRate(0); // Stop normal playback
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isScratching) return;
     const dx = e.clientX - lastXRef.current;
-    const dt = Date.now() - lastTimeRef.current;
     
-    if (dt > 0) {
-      const velocity = dx / dt; // pixels per ms
-      let rate = Math.abs(velocity * 2);
-      rate = Math.max(0.1, Math.min(3, rate)); // Keep rate valid
-
-      // Set forward playback rate to simulate pitch shift
-      setPlaybackRate(rate);
-
-      // If moving backward, manually seek backwards since negative playbackRate throws an error
-      if (velocity < 0) {
-        seekTo(Math.max(0, (currentTime - (Math.abs(dx) / 100)) / duration));
-      } else if (velocity > 0) {
-        seekTo(Math.min(1, (currentTime + (Math.abs(dx) / 100)) / duration));
-      }
-    }
+    // 1 pixel = 0.05 seconds of scrub (adjust for sensitivity)
+    scrubTimeRef.current += dx * 0.05;
+    scrubTimeRef.current = Math.max(0, Math.min(duration, scrubTimeRef.current));
     
+    seekTo(scrubTimeRef.current / duration);
+
     lastXRef.current = e.clientX;
-    lastTimeRef.current = Date.now();
   };
 
   const handlePointerUp = () => {
