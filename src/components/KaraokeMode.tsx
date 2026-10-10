@@ -1,12 +1,58 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 
 const KaraokeMode: React.FC = () => {
-  const { currentTime } = usePlayer();
+  const { currentSong, currentTime, duration } = usePlayer();
+  const [lyrics, setLyrics] = useState<{ time: number, text: string }[] | null>(null);
+  const [error, setError] = useState(false);
 
-  // Simple mock lyrics that loop every 40 seconds
-  const loopTime = currentTime % 40;
-  const lyrics = [
+  useEffect(() => {
+    if (!currentSong) return;
+    setLyrics(null);
+    setError(false);
+
+    const cleanArtist = currentSong.artist.split(',')[0].trim();
+    const cleanTitle = currentSong.title.replace(/\(.*?\)/g, '').trim();
+
+    if (!cleanArtist || cleanArtist === 'Unknown Artist') {
+      setError(true);
+      return;
+    }
+
+    fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(cleanArtist)}/${encodeURIComponent(cleanTitle)}`)
+      .then(res => {
+        if (!res.ok) throw new Error('Not found');
+        return res.json();
+      })
+      .then(data => {
+        if (data.lyrics) {
+          const cleanedLyrics = data.lyrics.replace(/Paroles de la chanson.+?[\r\n]+/i, '');
+          const lines = cleanedLyrics.split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0);
+          
+          if (lines.length > 0) {
+            // Pseudo-sync: Distribute lines evenly across the song duration
+            // (Assuming first line starts a bit after 0, and last line ends before duration)
+            const safeDuration = duration > 0 ? duration : 180;
+            const timePerLine = safeDuration / (lines.length + 2); 
+            
+            const syncedLyrics = lines.map((text: string, i: number) => ({
+              time: timePerLine * (i + 1),
+              text
+            }));
+            
+            setLyrics(syncedLyrics);
+          } else {
+            setError(true);
+          }
+        } else {
+          setError(true);
+        }
+      })
+      .catch(() => setError(true));
+  }, [currentSong, duration]);
+
+  // If error or still loading, show fallback mock lyrics
+  const displayLyrics = lyrics || [
     { time: 0, text: "♪ (Intro)" },
     { time: 5, text: "Ooh, yeah..." },
     { time: 10, text: "Let's go!" },
@@ -17,8 +63,11 @@ const KaraokeMode: React.FC = () => {
     { time: 35, text: "♪ (Chorus)" }
   ];
 
-  const activeIndex = lyrics.findIndex((l, i) => 
-    loopTime >= l.time && (i === lyrics.length - 1 || loopTime < lyrics[i + 1].time)
+  // For the mock fallback, loop every 40s. For real lyrics, use actual time.
+  const timeToUse = lyrics ? currentTime : currentTime % 40;
+
+  const activeIndex = displayLyrics.findIndex((l, i) => 
+    timeToUse >= l.time && (i === displayLyrics.length - 1 || timeToUse < displayLyrics[i + 1].time)
   );
 
   return (
@@ -50,13 +99,19 @@ const KaraokeMode: React.FC = () => {
         }
       `}</style>
       
+      {error && !lyrics && (
+        <div style={{ position: 'absolute', top: 12, right: 12, fontSize: '10px', color: 'rgba(255,255,255,0.3)', textAlign: 'right' }}>
+          Real lyrics not found.<br/>Showing visualizer.
+        </div>
+      )}
+
       <div style={{
         display: 'flex', flexDirection: 'column',
-        transform: `translateY(${(3 - activeIndex) * 44}px)`,
+        transform: `translateY(${(3 - (activeIndex >= 0 ? activeIndex : 0)) * 44}px)`,
         transition: 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
         width: '100%'
       }}>
-        {lyrics.map((l, i) => (
+        {displayLyrics.map((l, i) => (
           <div key={i} className={`lyric-line ${i === activeIndex ? 'lyric-active' : 'lyric-inactive'}`}>
             {l.text}
           </div>
