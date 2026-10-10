@@ -4,6 +4,7 @@ import { usePlayer } from '../context/PlayerContext';
 import { getCoverArtUrl } from '../utils/cloudinary';
 import QueuePanel from './QueuePanel';
 import NowPlayingScreen from './NowPlayingScreen';
+import { createPortal } from 'react-dom';
 
 const SLEEP_OPTIONS = [5, 10, 15, 20, 30, 45, 60];
 
@@ -254,12 +255,13 @@ const Player: React.FC = () => {
 
       {showQueue && <QueuePanel onClose={() => setShowQueue(false)} />}
 
-      {/* Full-screen Now Playing for mobile */}
-      {showNowPlaying && (
+      {/* Full-screen Now Playing via Portal to escape stacking context */}
+      {showNowPlaying && createPortal(
         <NowPlayingScreen
           onClose={() => setShowNowPlaying(false)}
           onMoreOptions={() => setShowNowPlaying(false)}
-        />
+        />,
+        document.body
       )}
 
     </div>
