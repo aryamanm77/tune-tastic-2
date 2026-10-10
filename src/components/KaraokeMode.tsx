@@ -19,27 +19,41 @@ const KaraokeMode: React.FC = () => {
       return;
     }
 
-    fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(cleanArtist)}/${encodeURIComponent(cleanTitle)}`)
+    fetch(`https://lrclib.net/api/get?artist_name=${encodeURIComponent(cleanArtist)}&track_name=${encodeURIComponent(cleanTitle)}`)
       .then(res => {
         if (!res.ok) throw new Error('Not found');
         return res.json();
       })
       .then(data => {
-        if (data.lyrics) {
-          const cleanedLyrics = data.lyrics.replace(/Paroles de la chanson.+?[\r\n]+/i, '');
-          const lines = cleanedLyrics.split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0);
-          
+        if (data.syncedLyrics) {
+          // Parse LRC format: [mm:ss.xx] Lyric text
+          const lines = data.syncedLyrics.split('\n');
+          const parsed = lines.map((line: string) => {
+            const match = line.match(/^\[(\d{2}):(\d{2}\.\d{2,3})\] (.*)$/);
+            if (match) {
+              const minutes = parseInt(match[1], 10);
+              const seconds = parseFloat(match[2]);
+              return { time: minutes * 60 + seconds, text: match[3].trim() || '♪' };
+            }
+            return null;
+          }).filter(Boolean);
+
+          if (parsed.length > 0) {
+            setLyrics(parsed);
+            return;
+          }
+        }
+        
+        // Fallback to plain lyrics with pseudo-sync if syncedLyrics not available or parsing failed
+        if (data.plainLyrics) {
+          const lines = data.plainLyrics.split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0);
           if (lines.length > 0) {
-            // Pseudo-sync: Distribute lines evenly across the song duration
-            // (Assuming first line starts a bit after 0, and last line ends before duration)
             const safeDuration = duration > 0 ? duration : 180;
             const timePerLine = safeDuration / (lines.length + 2); 
-            
             const syncedLyrics = lines.map((text: string, i: number) => ({
               time: timePerLine * (i + 1),
               text
             }));
-            
             setLyrics(syncedLyrics);
           } else {
             setError(true);

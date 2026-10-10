@@ -39,16 +39,14 @@ const LyricsCard: React.FC<{ artist: string, title: string }> = ({ artist, title
     }
 
     setLoading(true);
-    fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(cleanArtist)}/${encodeURIComponent(cleanTitle)}`)
+    fetch(`https://lrclib.net/api/get?artist_name=${encodeURIComponent(cleanArtist)}&track_name=${encodeURIComponent(cleanTitle)}`)
       .then(res => {
         if (!res.ok) throw new Error('Not found');
         return res.json();
       })
       .then(data => {
-        if (data.lyrics) {
-          // Remove "Paroles de la chanson" prefix from ovh
-          const cleanedLyrics = data.lyrics.replace(/Paroles de la chanson.+?[\r\n]+/i, '');
-          setLyrics(cleanedLyrics);
+        if (data.plainLyrics) {
+          setLyrics(data.plainLyrics);
         } else {
           setError(true);
         }
