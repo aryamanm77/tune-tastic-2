@@ -66,6 +66,29 @@ const LibraryView: React.FC<LibraryViewProps> = ({ onOpenPlaylist, onOpenUploads
           </div>
         </div>
 
+        {/* Room Queue Tile */}
+        <div 
+          style={{
+            background: 'linear-gradient(135deg, #ff416c, #ff4b2b)',
+            padding: '24px',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            aspectRatio: '1',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+          onClick={() => onOpenPlaylist('queue')}
+        >
+          <Music size={64} style={{ position: 'absolute', bottom: '-10px', right: '-10px', opacity: 0.1, color: 'white' }} />
+          <div>
+            <h2 style={{ fontSize: '32px', marginBottom: '8px', color: 'white' }}>Room Queue</h2>
+            <p style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 'bold' }}>Up next</p>
+          </div>
+        </div>
+
         {/* Custom Playlists */}
         {playlists.map(playlist => (
           <div 

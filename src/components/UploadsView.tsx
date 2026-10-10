@@ -12,12 +12,12 @@ const UploadsView: React.FC = () => {
 
   const handlePlay = (song: Song) => {
     if (currentSong?.id === song.id) togglePlayPause();
-    else playSong(song);
+    else playSong(song, uploadedSongs);
   };
 
   const handlePlayAll = () => {
     if (uploadedSongs.length > 0) {
-      playSong(uploadedSongs[0]);
+      playSong(uploadedSongs[0], uploadedSongs);
     }
   };
 

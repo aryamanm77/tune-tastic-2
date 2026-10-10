@@ -14,12 +14,12 @@ const DownloadsView: React.FC = () => {
 
   const handlePlay = (song: Song) => {
     if (currentSong?.id === song.id) togglePlayPause();
-    else playSong(song);
+    else playSong(song, downloadedSongList);
   };
 
   const handlePlayAll = () => {
     if (downloadedSongList.length > 0) {
-      playSong(downloadedSongList[0]);
+      playSong(downloadedSongList[0], downloadedSongList);
     }
   };
 

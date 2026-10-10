@@ -10,28 +10,32 @@ interface PlaylistViewProps {
 }
 
 const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId, goHome }) => {
-  const { currentSong, isPlaying, playSong, togglePlayPause, playlists, likedSongs, toggleLike, setPlaylists, deletePlaylist, renamePlaylist } = usePlayer() as any;
+  const { currentSong, isPlaying, playSong, togglePlayPause, playlists, likedSongs, toggleLike, setPlaylists, deletePlaylist, renamePlaylist, setQueue } = usePlayer() as any;
   const [modalSong, setModalSong] = useState<Song | null>(null);
   const [showMenu, setShowMenu] = useState(false);
 
   if (!playlistId) return <div className="main-view"></div>;
 
   const isLikedPlaylist = playlistId === 'liked';
-  const playlist: Playlist | null = isLikedPlaylist ? null : playlists.find((p: Playlist) => p.id === playlistId);
+  const isQueue = playlistId === 'queue';
+  const playlist: Playlist | null = (isLikedPlaylist || isQueue) ? null : playlists.find((p: Playlist) => p.id === playlistId);
   
-  const title = isLikedPlaylist ? "Liked Songs" : playlist?.name || "Unknown Playlist";
-  const songs: Song[] = isLikedPlaylist ? likedSongs : (playlist?.songs || []);
-  const cover = isLikedPlaylist ? null : playlist?.coverArt;
+  const title = isLikedPlaylist ? "Liked Songs" : isQueue ? "Room Queue" : playlist?.name || "Unknown Playlist";
+  const { queue } = usePlayer() as any;
+  const songs: Song[] = isLikedPlaylist ? likedSongs : isQueue ? queue : (playlist?.songs || []);
+  const cover = (isLikedPlaylist || isQueue) ? null : playlist?.coverArt;
 
   const handlePlay = (song: Song) => {
     if (currentSong?.id === song.id) togglePlayPause();
-    else playSong(song);
+    else playSong(song, songs);
   };
 
   const removeSong = (songId: string) => {
     if (isLikedPlaylist) {
       const s = songs.find((x: Song) => x.id === songId);
       if (s) toggleLike(s);
+    } else if (isQueue) {
+      setQueue((prev: Song[]) => prev.filter(s => s.id !== songId));
     } else {
       setPlaylists((prev: Playlist[]) =>
         prev.map(p => p.id === playlistId ? { ...p, songs: p.songs.filter(s => s.id !== songId) } : p)
@@ -48,7 +52,7 @@ const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId, goHome }) => {
 
   const handlePlayAll = () => {
     if (songs.length > 0) {
-      playSong(songs[0]);
+      playSong(songs[0], songs);
     }
   };
 
@@ -125,7 +129,7 @@ const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId, goHome }) => {
             <Play size={28} fill="black" style={{ marginLeft: '4px' }} />
           </button>
           
-          {!isLikedPlaylist && (
+          {!isLikedPlaylist && !isQueue && (
             <div style={{ position: 'relative' }}>
               <button 
                 onClick={() => setShowMenu(!showMenu)}

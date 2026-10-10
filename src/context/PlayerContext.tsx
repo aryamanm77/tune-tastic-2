@@ -34,7 +34,8 @@ interface PlayerContextType {
   playlists: Playlist[];
   likedSongs: Song[];
   recentlyPlayed: Song[];
-  playSong: (song: Song) => void;
+  setQueue: React.Dispatch<React.SetStateAction<Song[]>>;
+  playSong: (song: Song, newQueue?: Song[]) => void;
   togglePlayPause: () => void;
   nextSong: () => void;
   prevSong: () => void;
@@ -81,6 +82,7 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [isShuffled, setIsShuffled] = useState(false);
   const [repeatMode, setRepeatMode] = useState<'none' | 'all' | 'one'>('none');
   const [queue, setQueue] = useState<Song[]>([]);
+  const [originalQueue, setOriginalQueue] = useState<Song[]>([]);
 
   const [playlists, setPlaylists] = useState<Playlist[]>(() => {
     const saved = localStorage.getItem('tunetastic_playlists');
@@ -125,6 +127,7 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       const allSongs = module.default as Song[];
       setSongs(allSongs);
       setQueue(allSongs);
+      setOriginalQueue(allSongs);
     });
   }, []);
 
@@ -599,7 +602,17 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   }, [isPlaying]);
 
-  const playSong = async (song: Song) => {
+  const playSong = async (song: Song, newQueue?: Song[]) => {
+    if (newQueue) {
+      setOriginalQueue(newQueue);
+      if (isShuffled) {
+        const others = newQueue.filter(s => s.id !== song.id);
+        const shuffled = [...others].sort(() => Math.random() - 0.5);
+        setQueue([song, ...shuffled]);
+      } else {
+        setQueue(newQueue);
+      }
+    }
     initAudioContext();
     if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
       audioContextRef.current.resume();
@@ -734,9 +747,14 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const toggleShuffle = () => {
     if (!isShuffled) {
-      setQueue([...songs].sort(() => Math.random() - 0.5));
+      if (currentSong) {
+        const others = queue.filter(s => s.id !== currentSong.id);
+        setQueue([currentSong, ...others.sort(() => Math.random() - 0.5)]);
+      } else {
+        setQueue([...queue].sort(() => Math.random() - 0.5));
+      }
     } else {
-      setQueue(songs);
+      setQueue(originalQueue.length > 0 ? originalQueue : songs);
     }
     setIsShuffled(!isShuffled);
   };
@@ -823,6 +841,7 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     <PlayerContext.Provider value={{
       songs, currentSong, isPlaying, progress, currentTime, duration, volume, isShuffled, repeatMode, queue,
       playlists, likedSongs, recentlyPlayed,
+      setQueue,
       playSong, togglePlayPause, nextSong, prevSong, seekTo, setVolume, toggleShuffle, cycleRepeat,
       createPlaylist, addToPlaylist, toggleLike, isLiked, clearSong, setPlaylists, deletePlaylist, renamePlaylist, addToQueue,
       djState,
