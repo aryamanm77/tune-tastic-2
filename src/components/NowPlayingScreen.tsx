@@ -9,11 +9,11 @@ import { getCoverArtUrl } from '../utils/cloudinary';
 import {
   Play, Pause, SkipBack, SkipForward, Shuffle, Repeat,
   Heart, ChevronDown, MoreHorizontal, Volume2, VolumeX,
-  Sparkles, Disc, Mic2, Image as ImageIcon, Download, Plus
+  Sparkles, Disc, Image as ImageIcon, Download, Plus
 } from 'lucide-react';
 import Visualizer from './Visualizer';
 import VinylScratch from './VinylScratch';
-import KaraokeMode from './KaraokeMode';
+import AuraMode from './AuraMode';
 import AddToPlaylistModal from './AddToPlaylistModal';
 
 interface NowPlayingScreenProps {
@@ -101,7 +101,7 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose }) => {
   } = usePlayer();
 
   const [touching, setTouching] = useState(false);
-  const [activeMode, setActiveMode] = useState<'normal' | 'party' | 'vinyl' | 'karaoke'>('normal');
+  const [activeMode, setActiveMode] = useState<'normal' | 'party' | 'vinyl' | 'aura'>('normal');
   const [showMenu, setShowMenu] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -186,7 +186,7 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose }) => {
             { id: 'normal', icon: ImageIcon, label: 'Art' },
             { id: 'party', icon: Sparkles, label: 'Party' },
             { id: 'vinyl', icon: Disc, label: 'Vinyl' },
-            { id: 'karaoke', icon: Mic2, label: 'Karaoke' }
+            { id: 'aura', icon: Sparkles, label: 'Aura' }
           ].map(m => (
             <button
               key={m.id}
@@ -209,7 +209,7 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose }) => {
         {/* Central Display Area */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 0', zIndex: 2 }}>
           {activeMode === 'vinyl' && <VinylScratch />}
-          {activeMode === 'karaoke' && <KaraokeMode />}
+          {activeMode === 'aura' && <AuraMode />}
           
           {(activeMode === 'normal' || activeMode === 'party') && (
             <img
