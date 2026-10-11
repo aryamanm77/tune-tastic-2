@@ -19,52 +19,68 @@ const AppContent: React.FC = () => {
   const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null);
   const { djState } = usePlayer();
 
+  const isVideoActive = Boolean(djState.themeBackground && djState.themeBackground !== 'none' && !djState.nebulaMode);
+  const activeCategory = VIDEO_CATEGORIES.find(c => c.id === djState.themeBackground) || VIDEO_CATEGORIES[0];
+  const activeVideoUrl = isVideoActive
+    ? (djState.themeBackground?.startsWith('http') ? djState.themeBackground : (activeCategory?.videoUrl || VIDEO_CATEGORIES[0].videoUrl))
+    : '';
+
   useEffect(() => {
-    // Clear old themes
-    document.body.classList.remove('nebula-active', 'theme-ocean-waves', 'theme-cyber-matrix', 'theme-deep-space');
+    // Clear all existing theme and video classes
+    const classesToRemove = Array.from(document.body.classList).filter(c => c.startsWith('theme-') || c === 'video-bg-active' || c === 'nebula-active');
+    classesToRemove.forEach(c => document.body.classList.remove(c));
     
-    // Add new theme
+    // Add active theme classes
     if (djState.nebulaMode) {
       document.body.classList.add('nebula-active');
-    } else if (djState.themeBackground && djState.themeBackground !== 'none') {
-      document.body.classList.add(djState.themeBackground);
+    } else if (isVideoActive) {
+      document.body.classList.add('video-bg-active');
+      if (djState.themeBackground) {
+        document.body.classList.add(`theme-${djState.themeBackground}`);
+      }
     }
-  }, [djState.nebulaMode, djState.themeBackground]);
+  }, [djState.nebulaMode, djState.themeBackground, isVideoActive]);
 
   const navigateToPlaylist = (id: string) => {
     setActivePlaylistId(id);
     setActiveTab('playlist');
   };
 
-  const activeCategory = VIDEO_CATEGORIES.find(c => c.id === djState.themeBackground) || VIDEO_CATEGORIES[0];
-  const activeVideoUrl = djState.themeBackground?.startsWith('http')
-    ? djState.themeBackground
-    : (activeCategory?.videoUrl || VIDEO_CATEGORIES[0].videoUrl);
-
   return (
     <>
       {/* Real Video Background Across Entire App */}
-      <video
-        key={activeVideoUrl}
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          objectFit: 'cover',
-          zIndex: -2,
-          opacity: 0.55,
-          pointerEvents: 'none',
-        }}
-      >
-        <source src={activeVideoUrl} type="video/mp4" />
-      </video>
-      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: -1, pointerEvents: 'none' }} />
+      {isVideoActive && activeVideoUrl && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+          <video
+            key={activeVideoUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              objectFit: 'cover',
+              opacity: 0.85,
+              filter: 'brightness(0.88) contrast(1.08)',
+              transition: 'opacity 0.5s ease',
+            }}
+          >
+            <source src={activeVideoUrl} type={activeVideoUrl.endsWith('.webm') ? 'video/webm' : 'video/mp4'} />
+          </video>
+          {/* Subtle vignette/contrast overlay so text and controls are 100% crisp & readable */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.48) 100%)',
+            }}
+          />
+        </div>
+      )}
       <NebulaBackground />
       <div className="app-container" style={{ position: 'relative', zIndex: 10 }}>
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onOpenPlaylist={navigateToPlaylist} />

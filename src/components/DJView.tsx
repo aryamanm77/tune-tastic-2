@@ -4,7 +4,7 @@ import { getCoverArtUrl } from '../utils/cloudinary';
 import {
   Zap, AudioLines, Sparkles, Music2, Wind, Gauge,
   Radio, HeartPulse, Orbit, Disc, Users, PhoneCall, Bot, Activity, Compass, Hexagon, Rocket, Moon,
-  Film, Check, X
+  Film, Check, X, Power
 } from 'lucide-react';
 import TimeMachine from './TimeMachine';
 import GhostWhisperer from './GhostWhisperer';
@@ -16,9 +16,11 @@ import { VIDEO_CATEGORIES } from '../data/videoCategories';
 const DJView: React.FC = () => {
   const { djState, setDjState, isPlaying, currentSong } = usePlayer();
   const [showVideoModal, setShowVideoModal] = useState(false);
+  const [videoFilter, setVideoFilter] = useState<'all' | 'cars' | 'nature' | 'music' | 'cyber' | 'space' | 'cozy' | 'retro'>('all');
   const { isHitting } = useHapticBass(djState.hapticBass ?? false);
   const { requestPermission: requestSpatialAudio } = useAnchorSpatialAudio(djState.spatialAudio ?? false);
 
+  const isVideoActive = Boolean(djState.themeBackground && djState.themeBackground !== 'none' && !djState.nebulaMode);
   const activeCategory = VIDEO_CATEGORIES.find(c => c.id === djState.themeBackground) || VIDEO_CATEGORIES[0];
 
   // ─── Toggle switch ──────────────────────────────────────────────────────────
@@ -241,31 +243,122 @@ const DJView: React.FC = () => {
           right={<Toggle active={djState.nebulaMode ?? false} onClick={() => setDjState({ nebulaMode: !djState.nebulaMode, themeBackground: 'none' })} />}
         />
 
-        <Row
-          icon={<Film size={20} color="var(--spotify-green)" />}
-          title="App Video Backgrounds (20 Real Clips)"
-          desc={`Playing across entire app: ${activeCategory.icon} ${activeCategory.name}`}
-          right={
+        {/* ── Background Video Animation Studio (20 Real HD Clips) ─── */}
+        <div style={{
+          margin: '16px 24px',
+          padding: '18px 20px',
+          borderRadius: '16px',
+          background: isVideoActive ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.02)',
+          border: isVideoActive ? `1px solid ${activeCategory.accentColor}55` : '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: isVideoActive ? `0 8px 32px ${activeCategory.accentColor}18` : 'none',
+          transition: 'all 0.3s ease',
+        }}>
+          {/* Top row with title and ON/OFF Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '38px', height: '38px', borderRadius: '10px',
+                background: isVideoActive ? `${activeCategory.accentColor}25` : 'rgba(255,255,255,0.08)',
+                color: isVideoActive ? activeCategory.accentColor : 'rgba(255,255,255,0.5)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: isVideoActive ? `0 0 16px ${activeCategory.accentColor}44` : 'none',
+                transition: 'all 0.3s ease'
+              }}>
+                <Film size={20} />
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'white' }}>
+                    Background Video Animation
+                  </h3>
+                  <span style={{
+                    fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '100px',
+                    background: isVideoActive ? 'rgba(29, 185, 84, 0.18)' : 'rgba(255, 255, 255, 0.08)',
+                    color: isVideoActive ? '#1db954' : 'rgba(255, 255, 255, 0.4)',
+                    border: isVideoActive ? '1px solid rgba(29, 185, 84, 0.35)' : '1px solid transparent',
+                    display: 'flex', alignItems: 'center', gap: '4px'
+                  }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isVideoActive ? '#1db954' : 'rgba(255,255,255,0.3)', boxShadow: isVideoActive ? '0 0 6px #1db954' : 'none' }} />
+                    {isVideoActive ? 'ACTIVE IN ENTIRE APP' : 'PAUSED'}
+                  </span>
+                </div>
+                <p style={{ margin: '3px 0 0', fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+                  Real HD video clips playing continuously in background of Home, Search, Playlists & DJ Studio
+                </p>
+              </div>
+            </div>
+            
+            {/* Master ON/OFF Switch */}
+            <Toggle
+              active={isVideoActive}
+              onClick={() => {
+                if (isVideoActive) {
+                  setDjState({ themeBackground: 'none' });
+                  localStorage.setItem('tunetastic_theme_bg', 'none');
+                } else {
+                  const fallbackId = (activeCategory && activeCategory.id !== 'none') ? activeCategory.id : 'racing-cars';
+                  setDjState({ themeBackground: fallbackId, nebulaMode: false });
+                  localStorage.setItem('tunetastic_theme_bg', fallbackId);
+                }
+              }}
+            />
+          </div>
+
+          {/* Active Clip Preview Banner & Change Button */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: '16px', padding: '12px 16px', borderRadius: '12px',
+            background: 'rgba(0, 0, 0, 0.35)', border: '1px solid rgba(255, 255, 255, 0.06)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+              <span style={{ fontSize: '26px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>
+                {activeCategory.icon}
+              </span>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {activeCategory.name}
+                </p>
+                <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {activeCategory.description}
+                </p>
+              </div>
+            </div>
+
+            {/* High-Tech Glowing Action Button */}
             <button
+              type="button"
               onClick={() => setShowVideoModal(true)}
               style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
-                background: 'rgba(255,255,255,0.12)',
-                border: '1px solid rgba(255,255,255,0.25)',
+                background: isVideoActive 
+                  ? `linear-gradient(135deg, ${activeCategory.accentColor}33 0%, rgba(255,255,255,0.12) 100%)`
+                  : 'rgba(255,255,255,0.1)',
+                border: `1px solid ${isVideoActive ? activeCategory.accentColor : 'rgba(255,255,255,0.25)'}`,
                 color: 'white',
-                padding: '8px 14px',
+                padding: '10px 18px',
                 borderRadius: '100px',
                 cursor: 'pointer',
                 fontSize: '13px',
-                fontWeight: 600,
-                transition: 'all 0.2s ease',
+                fontWeight: 700,
+                letterSpacing: '0.3px',
+                whiteSpace: 'nowrap',
+                boxShadow: isVideoActive ? `0 4px 16px ${activeCategory.accentColor}33` : '0 4px 12px rgba(0,0,0,0.3)',
+                transition: 'all 0.25s ease',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-1px) scale(1.02)';
+                e.currentTarget.style.boxShadow = `0 6px 20px ${activeCategory.accentColor}55`;
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = isVideoActive ? `0 4px 16px ${activeCategory.accentColor}33` : '0 4px 12px rgba(0,0,0,0.3)';
               }}
             >
-              <span>{activeCategory.icon} {activeCategory.category}</span>
-              <span style={{ fontSize: '11px', color: 'var(--spotify-green)', fontWeight: 700 }}>Choose</span>
+              <Sparkles size={15} color={isVideoActive ? activeCategory.accentColor : 'white'} />
+              <span>Choose Animation (20 Clips)</span>
             </button>
-          }
-        />
+          </div>
+        </div>
 
         <Row
           icon={<Activity size={20} color={isHitting ? 'var(--spotify-green)' : 'currentColor'} style={{ transition: 'color 0.1s' }} />}
@@ -411,63 +504,145 @@ const DJView: React.FC = () => {
             onClick={() => setShowVideoModal(false)}
             style={{
               position: 'fixed', inset: 0,
-              background: 'rgba(0,0,0,0.75)',
+              background: 'rgba(0,0,0,0.8)',
               zIndex: 9998,
-              backdropFilter: 'blur(8px)',
+              backdropFilter: 'blur(12px)',
             }}
           />
           <div style={{
             position: 'fixed',
             top: '50%', left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: '92%', maxWidth: '780px',
-            maxHeight: '85vh',
-            background: '#1a1a1a',
-            borderRadius: '16px',
+            width: '94%', maxWidth: '880px',
+            maxHeight: '88vh',
+            background: '#141419',
+            borderRadius: '20px',
             zIndex: 9999,
             display: 'flex', flexDirection: 'column',
-            boxShadow: '0 24px 64px rgba(0,0,0,0.9)',
-            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 32px 80px rgba(0,0,0,0.95)',
+            border: '1px solid rgba(255,255,255,0.12)',
             overflow: 'hidden'
           }}>
             {/* Modal Header */}
             <div style={{
-              padding: '20px 24px',
+              padding: '22px 26px',
               borderBottom: '1px solid rgba(255,255,255,0.08)',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              background: '#222'
+              background: '#1a1a22'
             }}>
               <div>
-                <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Film size={20} color="var(--spotify-green)" /> App Video Backgrounds (20 Real Clips)
+                <h2 style={{ margin: 0, fontSize: '19px', fontWeight: 800, color: 'white', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Film size={22} color="var(--spotify-green)" /> Background Video Animation (20 Real Clips)
                 </h2>
                 <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.55)' }}>
-                  Looping real HD video playing continuously in the background of the entire app
+                  Real HD looping video streaming in the background of the entire app: Home, Search, Playlists & DJ Studio
                 </p>
               </div>
-              <button
-                onClick={() => setShowVideoModal(false)}
-                style={{
-                  background: 'rgba(255,255,255,0.1)', border: 'none',
-                  color: 'white', width: '32px', height: '32px',
-                  borderRadius: '50%', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}
-              >
-                <X size={18} />
-              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {/* Direct Turn Off Button */}
+                {isVideoActive && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDjState({ themeBackground: 'none' });
+                      localStorage.setItem('tunetastic_theme_bg', 'none');
+                      setShowVideoModal(false);
+                    }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '6px',
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      border: '1px solid rgba(239, 68, 68, 0.4)',
+                      color: '#ef4444',
+                      padding: '8px 14px',
+                      borderRadius: '100px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: 700
+                    }}
+                  >
+                    <Power size={14} /> Turn Off Video
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setShowVideoModal(false)}
+                  style={{
+                    background: 'rgba(255,255,255,0.1)', border: 'none',
+                    color: 'white', width: '34px', height: '34px',
+                    borderRadius: '50%', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Category Filter Chips */}
+            <div style={{
+              padding: '12px 24px',
+              borderBottom: '1px solid rgba(255,255,255,0.06)',
+              display: 'flex', gap: '8px', overflowX: 'auto',
+              background: '#16161e'
+            }}>
+              {[
+                { id: 'all', label: 'All 20 Clips' },
+                { id: 'cars', label: '🏎️ Cars & Racing' },
+                { id: 'nature', label: '🌲 Nature & Ocean' },
+                { id: 'music', label: '🎵 Music Stage' },
+                { id: 'cyber', label: '🌆 Cyberpunk & City' },
+                { id: 'space', label: '🌌 Space & Sci-Fi' },
+                { id: 'cozy', label: '☕ Chill & Lo-Fi' },
+                { id: 'retro', label: '📼 Vinyl & Retro' },
+              ].map(f => {
+                const isSelected = videoFilter === f.id;
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setVideoFilter(f.id as any)}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '100px',
+                      fontSize: '12px',
+                      fontWeight: isSelected ? 800 : 500,
+                      background: isSelected ? 'white' : 'rgba(255,255,255,0.06)',
+                      color: isSelected ? 'black' : 'rgba(255,255,255,0.7)',
+                      border: 'none',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    {f.label}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Video Categories Grid */}
             <div style={{
-              padding: '20px',
+              padding: '20px 24px',
               overflowY: 'auto',
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-              gap: '14px'
+              gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+              gap: '14px',
+              flex: 1
             }}>
-              {VIDEO_CATEGORIES.map(cat => {
-                const isSelected = djState.themeBackground === cat.id;
+              {VIDEO_CATEGORIES.filter(cat => {
+                if (videoFilter === 'all') return true;
+                if (videoFilter === 'cars') return cat.id.includes('racing') || cat.id.includes('city-timelapse');
+                if (videoFilter === 'nature') return cat.id.includes('nature') || cat.id.includes('ocean') || cat.id.includes('mountain') || cat.id.includes('sunset') || cat.id.includes('clouds') || cat.id.includes('forest') || cat.id.includes('desert');
+                if (videoFilter === 'music') return cat.id.includes('music');
+                if (videoFilter === 'cyber') return cat.id.includes('cyberpunk') || cat.id.includes('city') || cat.id.includes('electric');
+                if (videoFilter === 'space') return cat.id.includes('space') || cat.id.includes('warp') || cat.id.includes('aurora');
+                if (videoFilter === 'cozy') return cat.id.includes('fireplace') || cat.id.includes('rain') || cat.id.includes('lofi');
+                if (videoFilter === 'retro') return cat.id.includes('vinyl') || cat.id.includes('synthwave');
+                return true;
+              }).map(cat => {
+                const isSelected = isVideoActive && djState.themeBackground === cat.id;
                 return (
                   <div
                     key={cat.id}
@@ -477,36 +652,47 @@ const DJView: React.FC = () => {
                       setShowVideoModal(false);
                     }}
                     style={{
-                      background: isSelected ? 'rgba(29,185,84,0.15)' : 'rgba(255,255,255,0.05)',
-                      border: isSelected ? '2px solid var(--spotify-green)' : '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '12px',
-                      padding: '14px',
+                      background: isSelected ? 'rgba(29,185,84,0.12)' : 'rgba(255,255,255,0.04)',
+                      border: isSelected ? `2px solid var(--spotify-green)` : `1px solid rgba(255,255,255,0.08)`,
+                      borderRadius: '14px',
+                      padding: '16px',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
                       position: 'relative',
-                      display: 'flex', flexDirection: 'column', gap: '8px'
+                      display: 'flex', flexDirection: 'column', gap: '10px',
+                      boxShadow: isSelected ? '0 0 20px rgba(29,185,84,0.2)' : 'none'
                     }}
                     onMouseEnter={e => {
-                      if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                      if (!isSelected) {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                        e.currentTarget.style.borderColor = cat.accentColor;
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                      }
                     }}
                     onMouseLeave={e => {
-                      if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                      if (!isSelected) {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                        e.currentTarget.style.transform = 'none';
+                      }
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '24px' }}>{cat.icon}</span>
+                      <span style={{ fontSize: '28px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>{cat.icon}</span>
                       {isSelected ? (
                         <span style={{
-                          fontSize: '11px', fontWeight: 700, color: 'black',
-                          background: 'var(--spotify-green)', padding: '2px 8px',
-                          borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '3px'
+                          fontSize: '11px', fontWeight: 800, color: 'black',
+                          background: 'var(--spotify-green)', padding: '3px 10px',
+                          borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '4px',
+                          boxShadow: '0 0 12px rgba(29,185,84,0.5)'
                         }}>
-                          <Check size={12} strokeWidth={3} /> ACTIVE
+                          <Check size={12} strokeWidth={3} /> ACTIVE NOW
                         </span>
                       ) : (
                         <span style={{
-                          fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.4)',
-                          background: 'rgba(255,255,255,0.08)', padding: '2px 8px', borderRadius: '100px'
+                          fontSize: '11px', fontWeight: 700, color: cat.accentColor,
+                          background: `${cat.accentColor}18`, border: `1px solid ${cat.accentColor}44`,
+                          padding: '2px 8px', borderRadius: '100px'
                         }}>
                           {cat.category}
                         </span>
@@ -514,12 +700,21 @@ const DJView: React.FC = () => {
                     </div>
 
                     <div>
-                      <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'white' }}>
+                      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'white' }}>
                         {cat.name}
                       </h4>
-                      <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.3 }}>
+                      <p style={{ margin: '5px 0 0', fontSize: '12px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.35 }}>
                         {cat.description}
                       </p>
+                    </div>
+
+                    <div style={{ marginTop: 'auto', paddingTop: '6px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                      <span style={{
+                        fontSize: '11px', fontWeight: 700,
+                        color: isSelected ? 'var(--spotify-green)' : 'rgba(255,255,255,0.35)',
+                      }}>
+                        {isSelected ? '● Streaming across app' : 'Click to stream →'}
+                      </span>
                     </div>
                   </div>
                 );

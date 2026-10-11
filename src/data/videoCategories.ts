@@ -14,8 +14,8 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Racing Supercars & Drift',
     category: 'Racing Cars',
     icon: '🏎️',
-    description: 'High-speed hypercars, night highway drift, and redline acceleration',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/samples/cld-sample-video.mp4',
+    description: 'High-speed supercars, night street racing, and highway speed acceleration',
+    videoUrl: 'https://videos.pexels.com/video-files/2103099/2103099-sd_640_360_30fps.mp4',
     accentColor: '#ef4444'
   },
   {
@@ -23,8 +23,8 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Nature & Wilderness',
     category: 'Nature',
     icon: '🌲',
-    description: 'Lush green mountain trails, pine trees, and fresh mountain breezes',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/forest_bike.mp4',
+    description: 'Lush green mountain trails, rushing stream waterfall, and fresh wilderness',
+    videoUrl: 'https://videos.pexels.com/video-files/3015510/3015510-hd_1280_720_24fps.mp4',
     accentColor: '#10b981'
   },
   {
@@ -32,8 +32,8 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Music World & Concert Stage',
     category: 'Music World',
     icon: '🎵',
-    description: 'Laser festival lights, pulsing crowd energy, and live stage vibes',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/rafting.mp4',
+    description: 'Laser festival lights, cheering crowd energy, and pulsating live concert stage',
+    videoUrl: 'https://videos.pexels.com/video-files/2022395/2022395-hd_1280_720_30fps.mp4',
     accentColor: '#a855f7'
   },
   {
@@ -41,8 +41,8 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Ocean & Sea Waves',
     category: 'Ocean',
     icon: '🌊',
-    description: 'Crystal turquoise waters, rolling tides, and coral marine depths',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/sea_turtle.mp4',
+    description: 'Crystal turquoise waters and rolling ocean waves crashing on the shore',
+    videoUrl: 'https://videos.pexels.com/video-files/854400/854400-hd_1280_720_30fps.mp4',
     accentColor: '#06b6d4'
   },
   {
@@ -50,8 +50,8 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Cyberpunk Neon City',
     category: 'Cyberpunk',
     icon: '🌆',
-    description: 'Rainy futuristic Tokyo alleys, glowing neon signs, and chrome reflections',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/samples/cld-sample-video.mp4',
+    description: 'Rainy futuristic Tokyo streets, glowing neon billboards, and cyberpunk nightlife',
+    videoUrl: 'https://videos.pexels.com/video-files/3129671/3129671-hd_1280_720_30fps.mp4',
     accentColor: '#ec4899'
   },
   {
@@ -59,8 +59,8 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Deep Space & Nebula',
     category: 'Space',
     icon: '🌌',
-    description: 'Floating through cosmic interstellar stardust and orbiting galaxies',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/samples/cld-sample-video.mp4',
+    description: 'Floating through cosmic interstellar stardust, vibrant nebulae, and galaxy clusters',
+    videoUrl: 'https://videos.pexels.com/video-files/856963/856963-hd_1280_720_25fps.mp4',
     accentColor: '#6366f1'
   },
   {
@@ -68,8 +68,8 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Moody Rain & Thunderstorm',
     category: 'Weather',
     icon: '🌧️',
-    description: 'Gentle raindrops streaming down a window overlooking nighttime lights',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/rafting.mp4',
+    description: 'Gentle raindrops streaming down a window overlooking nighttime ambient lights',
+    videoUrl: 'https://videos.pexels.com/video-files/2611250/2611250-hd_1280_720_30fps.mp4',
     accentColor: '#38bdf8'
   },
   {
@@ -77,8 +77,8 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Sunset & Golden Horizon',
     category: 'Sunset',
     icon: '🌅',
-    description: 'Warm golden hour skies, radiant twilight glow, and evening serenity',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/forest_bike.mp4',
+    description: 'Warm golden hour twilight glow and evening serenity across ocean horizon',
+    videoUrl: 'https://videos.pexels.com/video-files/2098989/2098989-hd_1280_720_30fps.mp4',
     accentColor: '#f59e0b'
   },
   {
@@ -86,8 +86,8 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Retro Synthwave & Outrun',
     category: 'Retro',
     icon: '🕹️',
-    description: '80s wireframe grid highway racing towards a neon magenta sun',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/samples/cld-sample-video.mp4',
+    description: '80s retro neon geometric landscape and glowing wireframe horizon',
+    videoUrl: 'https://videos.pexels.com/video-files/2795393/2795393-hd_1280_720_25fps.mp4',
     accentColor: '#f43f5e'
   },
   {
@@ -95,8 +95,8 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Chill Lo-Fi & Study Room',
     category: 'Lo-Fi',
     icon: '☕',
-    description: 'Cozy midnight bedroom desk with rain tapping on the glass',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/dog.mp4',
+    description: 'Cozy midnight room with raindrops on the window and relaxing ambient vibes',
+    videoUrl: 'https://videos.pexels.com/video-files/1526909/1526909-hd_1280_720_24fps.mp4',
     accentColor: '#d97706'
   },
   {
@@ -105,7 +105,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     category: 'Aurora',
     icon: '✨',
     description: 'Emerald green and violet celestial curtains dancing across arctic skies',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/snow_horses.mp4',
+    videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/40/Aurora_Borealis_03-17-2013.webm',
     accentColor: '#2dd4bf'
   },
   {
@@ -113,8 +113,8 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Deep Forest & Sun Rays',
     category: 'Forest',
     icon: '🍃',
-    description: 'Golden morning light filtering through towering redwood canopies',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/forest_bike.mp4',
+    description: 'Golden morning light filtering through towering evergreen pine tree canopies',
+    videoUrl: 'https://videos.pexels.com/video-files/1943483/1943483-hd_1280_720_25fps.mp4',
     accentColor: '#22c55e'
   },
   {
@@ -122,8 +122,8 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Snowy Mountain Alps',
     category: 'Mountains',
     icon: '🏔️',
-    description: 'Grand alpine summits and majestic galloping horses in pure snow',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/snow_horses.mp4',
+    description: 'Grand alpine summits and majestic snow-capped peaks in winter sunlight',
+    videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/94/B%C3%BCelenhorn_%28Monstein%29%2C_aerial_video.webm',
     accentColor: '#93c5fd'
   },
   {
@@ -131,8 +131,8 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Roaring Fireplace & Embers',
     category: 'Fireplace',
     icon: '🔥',
-    description: 'Warm crackling hearth flames providing cozy ambient heat',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/marmots.mp4',
+    description: 'Warm crackling hearth log flames providing cozy ambient heat and glow',
+    videoUrl: 'https://videos.pexels.com/video-files/1779202/1779202-hd_1280_720_25fps.mp4',
     accentColor: '#ea580c'
   },
   {
@@ -141,7 +141,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     category: 'Sci-Fi',
     icon: '🚀',
     description: 'Light-speed warp acceleration through a futuristic dimensional vortex',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/samples/cld-sample-video.mp4',
+    videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/06/NASA_Black_Hole_Visualization_Takes_Viewers_Beyond_the_Brink_%28SVS14576_BHPlunge_360_FINAL_1080%29.webm',
     accentColor: '#8b5cf6'
   },
   {
@@ -149,8 +149,8 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Electric Neon Energy',
     category: 'Visualizer',
     icon: '⚡',
-    description: 'High-voltage electric sparks and pulsing audio visualizer lightwaves',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/samples/cld-sample-video.mp4',
+    description: 'High-voltage electric energy waves, neon pulses, and audio visualizer motion',
+    videoUrl: 'https://videos.pexels.com/video-files/1851190/1851190-hd_1280_720_25fps.mp4',
     accentColor: '#00f0ff'
   },
   {
@@ -158,8 +158,8 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Night City Traffic Timelapse',
     category: 'Timelapse',
     icon: '🚦',
-    description: 'Streaking red and white light trails across towering urban skyscrapers',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/samples/cld-sample-video.mp4',
+    description: 'Streaking vehicle light trails and bustling traffic across urban metropolis',
+    videoUrl: 'https://videos.pexels.com/video-files/3191572/3191572-hd_1280_720_25fps.mp4',
     accentColor: '#3b82f6'
   },
   {
@@ -167,8 +167,8 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Desert Dunes & Starlight',
     category: 'Desert',
     icon: '🏜️',
-    description: 'Vast shifting golden sand dunes under tranquil open desert skies',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/marmots.mp4',
+    description: 'Vast shifting golden sand dunes under tranquil open desert sunset skies',
+    videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/1c/Mojave_Desert_Sunset_%2840480403760%29.webm',
     accentColor: '#ca8a04'
   },
   {
@@ -176,17 +176,17 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
     name: 'Dreamy Sunset Cloud Flight',
     category: 'Clouds',
     icon: '☁️',
-    description: 'Soaring above pastel sunset cumulus cloudscapes in total peace',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/rafting.mp4',
+    description: 'Soaring above pastel sunset cumulus cloudscapes in total peace from airplane view',
+    videoUrl: 'https://videos.pexels.com/video-files/855564/855564-hd_1280_720_24fps.mp4',
     accentColor: '#f472b6'
   },
   {
     id: 'vinyl-turntable',
-    name: 'Vintage Turntable & Tape Deck',
+    name: 'Vintage Turntable & Vinyl Record',
     category: 'Vinyl Audio',
     icon: '📼',
-    description: 'Spinning 33 RPM analog vinyl and glowing vintage hi-fi VU meters',
-    videoUrl: 'https://res.cloudinary.com/demo/video/upload/q_auto,w_1280/dog.mp4',
+    description: 'Real analog 33 RPM LP vinyl record spinning on vintage turntable with needle in groove',
+    videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/0d/LP_Long_play_vinyl_record_%28record_player%29_3_-_Free_HD_stock_footage.webm',
     accentColor: '#14b8a6'
   }
 ];
