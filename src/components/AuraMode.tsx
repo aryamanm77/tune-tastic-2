@@ -146,9 +146,9 @@ const AuraMode: React.FC<AuraModeProps> = ({ onBack }) => {
 
   return (
     <div style={{
-      position: 'absolute',
+      position: 'fixed',
       inset: 0,
-      zIndex: 10,
+      zIndex: 900,
       background: 'radial-gradient(ellipse at center, #0f172a 0%, #030712 100%)',
       display: 'flex',
       flexDirection: 'column',
