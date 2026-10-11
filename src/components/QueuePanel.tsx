@@ -1,17 +1,40 @@
 import React from 'react';
-import { usePlayer } from '../context/PlayerContext';
+import { usePlayer, Song } from '../context/PlayerContext';
 import { getCoverArtUrl } from '../utils/cloudinary';
-import { X, Play } from 'lucide-react';
+import { X, Play, Trash2 } from 'lucide-react';
 
 interface QueuePanelProps {
   onClose: () => void;
 }
 
 const QueuePanel: React.FC<QueuePanelProps> = ({ onClose }) => {
-  const { queue, currentSong, playSong } = usePlayer();
+  const { queue, currentSong, playSong, setQueue, clearQueue, removeFromQueue } = usePlayer() as any;
 
-  const currentIndex = queue.findIndex(s => s.id === currentSong?.id);
-  const upNext = currentIndex >= 0 ? queue.slice(currentIndex + 1, currentIndex + 21) : queue.slice(0, 20);
+  const queuedSongs: Song[] = queue || [];
+
+  const handlePlayQueued = (song: Song, index: number) => {
+    if (setQueue) {
+      setQueue(queuedSongs.slice(index + 1));
+    }
+    playSong(song);
+  };
+
+  const handleRemove = (songId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (removeFromQueue) {
+      removeFromQueue(songId);
+    } else if (setQueue) {
+      setQueue((prev: Song[]) => prev.filter(s => s.id !== songId));
+    }
+  };
+
+  const handleClear = () => {
+    if (clearQueue) {
+      clearQueue();
+    } else if (setQueue) {
+      setQueue([]);
+    }
+  };
 
   return (
     <div style={{
@@ -69,20 +92,42 @@ const QueuePanel: React.FC<QueuePanelProps> = ({ onClose }) => {
           </div>
         )}
 
-        {/* Up Next */}
-        {upNext.length > 0 && (
-          <div style={{ marginTop: '16px' }}>
-            <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '1px', padding: '0 16px', marginBottom: '8px' }}>
-              NEXT UP
+        {/* Queued Songs - strictly user-added */}
+        <div style={{ marginTop: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', marginBottom: '8px' }}>
+            <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '1px', margin: 0 }}>
+              QUEUED SONGS ({queuedSongs.length})
             </p>
-            {upNext.map((song, i) => (
+            {queuedSongs.length > 0 && (
+              <button
+                onClick={handleClear}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-secondary)',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: '2px 6px',
+                }}
+                onMouseOver={e => e.currentTarget.style.color = '#fff'}
+                onMouseOut={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+
+          {queuedSongs.length > 0 ? (
+            queuedSongs.map((song, i) => (
               <div
                 key={`q-${song.id}-${i}`}
-                onClick={() => playSong(song)}
+                onClick={() => handlePlayQueued(song, i)}
                 className="song-row"
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px',
                   padding: '8px 16px', cursor: 'pointer',
+                  position: 'relative',
                 }}
                 onMouseOver={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.07)')}
                 onMouseOut={e => (e.currentTarget.style.backgroundColor = 'transparent')}
@@ -109,20 +154,34 @@ const QueuePanel: React.FC<QueuePanelProps> = ({ onClose }) => {
                   <p style={{ margin: 0, fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</p>
                   <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.artist}</p>
                 </div>
-                <span style={{ fontSize: '12px', color: 'var(--text-secondary)', flexShrink: 0 }}>
-                  {currentIndex + 1 + i + 1}
-                </span>
+                <button
+                  onClick={(e) => handleRemove(song.id, e)}
+                  title="Remove from queue"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    padding: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: 0.6,
+                  }}
+                  onMouseOver={e => e.currentTarget.style.opacity = '1'}
+                  onMouseOut={e => e.currentTarget.style.opacity = '0.6'}
+                >
+                  <Trash2 size={14} />
+                </button>
               </div>
-            ))}
-          </div>
-        )}
-
-        {upNext.length === 0 && !currentSong && (
-          <div style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-secondary)' }}>
-            <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Queue is empty</p>
-            <p style={{ fontSize: '14px' }}>Play a song to see what's next</p>
-          </div>
-        )}
+            ))
+          ) : (
+            <div style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-secondary)' }}>
+              <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>Queue is empty</p>
+              <p style={{ fontSize: '13px', margin: 0, opacity: 0.7 }}>Add songs to queue using the (•••) menu on any track</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

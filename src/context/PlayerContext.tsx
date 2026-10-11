@@ -31,6 +31,9 @@ interface PlayerContextType {
   isShuffled: boolean;
   repeatMode: 'none' | 'all' | 'one';
   queue: Song[];
+  playbackTracklist?: Song[];
+  clearQueue?: () => void;
+  removeFromQueue?: (songId: string) => void;
   playlists: Playlist[];
   likedSongs: Song[];
   recentlyPlayed: Song[];
@@ -81,8 +84,12 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   
   const [isShuffled, setIsShuffled] = useState(false);
   const [repeatMode, setRepeatMode] = useState<'none' | 'all' | 'one'>('none');
-  const [queue, setQueue] = useState<Song[]>([]);
-  const [originalQueue, setOriginalQueue] = useState<Song[]>([]);
+  const [userQueue, setUserQueue] = useState<Song[]>(() => {
+    const saved = localStorage.getItem('tunetastic_user_queue');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [playbackTracklist, setPlaybackTracklist] = useState<Song[]>([]);
+  const [originalTracklist, setOriginalTracklist] = useState<Song[]>([]);
 
   const [playlists, setPlaylists] = useState<Playlist[]>(() => {
     const saved = localStorage.getItem('tunetastic_playlists');
@@ -123,11 +130,16 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, [recentlyPlayed]);
 
   useEffect(() => {
+    localStorage.setItem('tunetastic_user_queue', JSON.stringify(userQueue));
+  }, [userQueue]);
+
+  useEffect(() => {
     import('../data/songs.json').then((module) => {
       const allSongs = module.default as Song[];
       setSongs(allSongs);
-      setQueue(allSongs);
-      setOriginalQueue(allSongs);
+      setPlaybackTracklist(allSongs);
+      setOriginalTracklist(allSongs);
+      // NOTE: userQueue remains empty by default - only explicitly queued songs go into userQueue!
     });
   }, []);
 
@@ -196,14 +208,7 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       setIsPlaying(false);
     });
     navigator.mediaSession.setActionHandler('nexttrack', () => nextSongRef.current());
-    navigator.mediaSession.setActionHandler('previoustrack', () => {
-      if (audioRef.current && audioRef.current.currentTime > 3) {
-        audioRef.current.currentTime = 0;
-      } else {
-        const currentIndex = queue.findIndex(s => s.id === currentSong.id);
-        if (currentIndex > 0) playSong(queue[currentIndex - 1]);
-      }
-    });
+    navigator.mediaSession.setActionHandler('previoustrack', () => prevSongRef.current());
     navigator.mediaSession.setActionHandler('seekto', (details) => {
       if (details.seekTime !== undefined && audioRef.current) {
         audioRef.current.currentTime = details.seekTime;
@@ -567,6 +572,7 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, []);
 
   const nextSongRef = useRef(() => {});
+  const prevSongRef = useRef(() => {});
 
   useEffect(() => {
     nextSongRef.current = () => {
@@ -578,19 +584,32 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         return;
       }
       
-      if (!currentSong) return;
-      const currentIndex = queue.findIndex(s => s.id === currentSong.id);
-      if (currentIndex === -1) return;
+      // 1. Prioritize user-queued songs (only explicit queued songs)
+      if (userQueue.length > 0) {
+        const nextInQueue = userQueue[0];
+        setUserQueue(prev => prev.slice(1));
+        playSong(nextInQueue);
+        return;
+      }
 
-      if (currentIndex < queue.length - 1) {
-        playSong(queue[currentIndex + 1]);
+      // 2. Play next in background playlist tracklist
+      if (!currentSong) return;
+      const tracklist = playbackTracklist.length > 0 ? playbackTracklist : songs;
+      const currentIndex = tracklist.findIndex(s => s.id === currentSong.id);
+      if (currentIndex === -1) {
+        if (tracklist.length > 0) playSong(tracklist[0]);
+        return;
+      }
+
+      if (currentIndex < tracklist.length - 1) {
+        playSong(tracklist[currentIndex + 1]);
       } else if (repeatMode === 'all') {
-        playSong(queue[0]);
+        playSong(tracklist[0]);
       } else {
         setIsPlaying(false);
       }
     };
-  }, [queue, currentSong, repeatMode]);
+  }, [userQueue, playbackTracklist, songs, currentSong, repeatMode]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -603,15 +622,28 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, [isPlaying]);
 
   const playSong = async (song: Song, newQueue?: Song[]) => {
+    // If user played a song that is in userQueue, remove it from queue
+    setUserQueue(prev => prev.filter(s => s.id !== song.id));
+
     if (newQueue) {
-      setOriginalQueue(newQueue);
+      setOriginalTracklist(newQueue);
       if (isShuffled) {
         const others = newQueue.filter(s => s.id !== song.id);
         const shuffled = [...others].sort(() => Math.random() - 0.5);
-        setQueue([song, ...shuffled]);
+        setPlaybackTracklist([song, ...shuffled]);
       } else {
-        setQueue(newQueue);
+        setPlaybackTracklist(newQueue);
       }
+    } else {
+      setPlaybackTracklist(prev => {
+        if (prev.some(s => s.id === song.id)) return prev;
+        const all = songs.length > 0 ? songs : [song];
+        const idx = all.findIndex(s => s.id === song.id);
+        if (idx !== -1) {
+          return all.slice(idx);
+        }
+        return [song, ...prev];
+      });
     }
     initAudioContext();
     if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
@@ -723,13 +755,23 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       audioRef.current.currentTime = 0;
       return;
     }
+
+    if (recentlyPlayed.length > 1) {
+      playSong(recentlyPlayed[1]);
+      return;
+    }
     
     if (!currentSong) return;
-    const currentIndex = queue.findIndex(s => s.id === currentSong.id);
+    const tracklist = playbackTracklist.length > 0 ? playbackTracklist : songs;
+    const currentIndex = tracklist.findIndex(s => s.id === currentSong.id);
     if (currentIndex > 0) {
-      playSong(queue[currentIndex - 1]);
+      playSong(tracklist[currentIndex - 1]);
     }
   };
+
+  useEffect(() => {
+    prevSongRef.current = prevSong;
+  });
 
   const seekTo = (newProgress: number) => {
     if (audioRef.current && audioRef.current.duration) {
@@ -747,14 +789,15 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const toggleShuffle = () => {
     if (!isShuffled) {
+      const tracklist = playbackTracklist.length > 0 ? playbackTracklist : songs;
       if (currentSong) {
-        const others = queue.filter(s => s.id !== currentSong.id);
-        setQueue([currentSong, ...others.sort(() => Math.random() - 0.5)]);
+        const others = tracklist.filter(s => s.id !== currentSong.id);
+        setPlaybackTracklist([currentSong, ...others.sort(() => Math.random() - 0.5)]);
       } else {
-        setQueue([...queue].sort(() => Math.random() - 0.5));
+        setPlaybackTracklist([...tracklist].sort(() => Math.random() - 0.5));
       }
     } else {
-      setQueue(originalQueue.length > 0 ? originalQueue : songs);
+      setPlaybackTracklist(originalTracklist.length > 0 ? originalTracklist : songs);
     }
     setIsShuffled(!isShuffled);
   };
@@ -786,15 +829,18 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   };
 
   const addToQueue = (song: Song) => {
-    setQueue(prev => {
-      const currentIndex = prev.findIndex(s => s.id === currentSong?.id);
-      const insertAt = currentIndex >= 0 ? currentIndex + 1 : prev.length;
-      const next = [...prev];
-      const existingIdx = next.findIndex(s => s.id === song.id);
-      if (existingIdx > insertAt) next.splice(existingIdx, 1);
-      next.splice(insertAt, 0, song);
-      return next;
+    setUserQueue(prev => {
+      const filtered = prev.filter(s => s.id !== song.id);
+      return [...filtered, song];
     });
+  };
+
+  const removeFromQueue = (songId: string) => {
+    setUserQueue(prev => prev.filter(s => s.id !== songId));
+  };
+
+  const clearQueue = () => {
+    setUserQueue([]);
   };
 
   const toggleLike = (song: Song) => {
@@ -839,9 +885,13 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   return (
     <PlayerContext.Provider value={{
-      songs, currentSong, isPlaying, progress, currentTime, duration, volume, isShuffled, repeatMode, queue,
+      songs, currentSong, isPlaying, progress, currentTime, duration, volume, isShuffled, repeatMode,
+      queue: userQueue,
+      playbackTracklist,
+      clearQueue,
+      removeFromQueue,
       playlists, likedSongs, recentlyPlayed,
-      setQueue,
+      setQueue: setUserQueue,
       playSong, togglePlayPause, nextSong, prevSong, seekTo, setVolume, toggleShuffle, cycleRepeat,
       createPlaylist, addToPlaylist, toggleLike, isLiked, clearSong, setPlaylists, deletePlaylist, renamePlaylist, addToQueue,
       djState,

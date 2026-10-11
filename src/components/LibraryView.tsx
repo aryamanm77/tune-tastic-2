@@ -1,6 +1,6 @@
 import React from 'react';
-import { usePlayer } from '../context/PlayerContext';
-import { Heart, Music, UploadCloud } from 'lucide-react';
+import { usePlayer, Playlist } from '../context/PlayerContext';
+import { Heart, Music, UploadCloud, ListMusic } from 'lucide-react';
 
 interface LibraryViewProps {
   onOpenPlaylist: (id: string) => void;
@@ -8,7 +8,7 @@ interface LibraryViewProps {
 }
 
 const LibraryView: React.FC<LibraryViewProps> = ({ onOpenPlaylist, onOpenUploads }) => {
-  const { playlists, likedSongs } = usePlayer();
+  const { playlists, likedSongs, queue } = usePlayer();
 
   return (
     <div className="main-view" style={{ padding: '24px' }}>
@@ -82,15 +82,17 @@ const LibraryView: React.FC<LibraryViewProps> = ({ onOpenPlaylist, onOpenUploads
           }}
           onClick={() => onOpenPlaylist('queue')}
         >
-          <Music size={64} style={{ position: 'absolute', bottom: '-10px', right: '-10px', opacity: 0.1, color: 'white' }} />
+          <ListMusic size={64} style={{ position: 'absolute', bottom: '-10px', right: '-10px', opacity: 0.15, color: 'white' }} />
           <div>
             <h2 style={{ fontSize: '32px', marginBottom: '8px', color: 'white' }}>Queue</h2>
-            <p style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 'bold' }}>Up next</p>
+            <p style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 'bold' }}>
+              {queue && queue.length > 0 ? `${queue.length} ${queue.length === 1 ? 'song' : 'songs'} queued` : 'Empty (0 songs)'}
+            </p>
           </div>
         </div>
 
         {/* Custom Playlists */}
-        {playlists.map(playlist => (
+        {playlists.map((playlist: Playlist) => (
           <div 
             key={playlist.id}
             style={{
