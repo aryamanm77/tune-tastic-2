@@ -1,10 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import { usePlayer } from '../context/PlayerContext';
+import { ArrowLeft } from 'lucide-react';
 
-const Visualizer: React.FC = () => {
+interface VisualizerProps {
+  onBack?: () => void;
+}
+
+const Visualizer: React.FC<VisualizerProps> = ({ onBack }) => {
   const { getAnalyserData, isPlaying } = usePlayer();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const requestRef = useRef<number>();
+  const peaksRef = useRef<number[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -16,95 +21,132 @@ const Visualizer: React.FC = () => {
     let height = canvas.height = window.innerHeight;
 
     const handleResize = () => {
+      if (!canvas) return;
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
     };
     window.addEventListener('resize', handleResize);
 
-    const particles: { x: number, y: number, vx: number, vy: number, size: number, color: string }[] = [];
-    for (let i = 0; i < 50; i++) {
-      particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 2,
-        vy: (Math.random() - 0.5) * 2,
-        size: Math.random() * 4 + 1,
-        color: `hsl(${Math.random() * 360}, 100%, 50%)`
-      });
-    }
+    const BAR_COUNT = 48;
+    peaksRef.current = new Array(BAR_COUNT).fill(0);
+
+    let animationFrameId: number;
 
     const render = () => {
-      if (!isPlaying) {
-        requestRef.current = requestAnimationFrame(render);
-        return;
-      }
+      ctx.clearRect(0, 0, width, height);
 
-      const data = getAnalyserData();
-      if (!data || data.length === 0) {
-        requestRef.current = requestAnimationFrame(render);
-        return;
-      }
-
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      // Deep dark studio atmospheric background with gradient
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+      bgGrad.addColorStop(0, 'rgba(6, 11, 25, 0.7)');
+      bgGrad.addColorStop(1, 'rgba(2, 4, 10, 0.95)');
+      ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, width, height);
 
-      // Draw frequency bars
-      const barWidth = (width / data.length) * 2.5;
-      let x = 0;
+      const data = getAnalyserData();
+      const hasAudio = data && data.length > 0 && isPlaying;
 
-      for (let i = 0; i < data.length; i++) {
-        const barHeight = data[i] * 1.5;
-        const r = barHeight + (25 * (i / data.length));
-        const g = 250 * (i / data.length);
-        const b = 50;
+      const totalBarWidth = Math.min(width * 0.9, 720);
+      const startX = (width - totalBarWidth) / 2;
+      const barSpacing = totalBarWidth / BAR_COUNT;
+      const barWidth = barSpacing * 0.65;
+      const baselineY = height * 0.75;
+      const maxHeight = height * 0.45;
 
-        ctx.fillStyle = `rgb(${r},${g},${b})`;
-        ctx.fillRect(x, height - barHeight / 2, barWidth, barHeight / 2);
-        x += barWidth + 1;
-      }
+      for (let i = 0; i < BAR_COUNT; i++) {
+        // Map linearly/logarithmically to spectrum indices
+        const dataIdx = Math.floor(Math.pow(i / BAR_COUNT, 1.4) * Math.min(data?.length || 1, 128));
+        const rawVal = hasAudio ? (data[dataIdx] || 0) : 10;
+        const barHeight = Math.max(6, (rawVal / 255) * maxHeight);
 
-      // Draw beat particles
-      const bassFreq = data[0] || 0; 
-      
-      particles.forEach(p => {
-        p.x += p.vx * (bassFreq / 50 + 1);
-        p.y += p.vy * (bassFreq / 50 + 1);
+        // Update peak caps with gravity falloff
+        if (barHeight > peaksRef.current[i]) {
+          peaksRef.current[i] = barHeight;
+        } else {
+          peaksRef.current[i] = Math.max(0, peaksRef.current[i] - 2.5);
+        }
 
-        if (p.x < 0 || p.x > width) p.vx *= -1;
-        if (p.y < 0 || p.y > height) p.vy *= -1;
+        const x = startX + i * barSpacing;
+        const y = baselineY - barHeight;
+
+        // Dynamic electric gradient: Electric Emerald -> Cyan -> Magenta Violet
+        const grad = ctx.createLinearGradient(0, baselineY, 0, baselineY - maxHeight);
+        grad.addColorStop(0, 'rgba(29, 185, 84, 0.7)');
+        grad.addColorStop(0.5, 'rgba(6, 182, 212, 0.9)');
+        grad.addColorStop(1, 'rgba(168, 85, 247, 1)');
+
+        // Draw main bar with rounded top
+        ctx.beginPath();
+        ctx.roundRect(x, y, barWidth, barHeight, [4, 4, 0, 0]);
+        ctx.fillStyle = grad;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = 'rgba(6, 182, 212, 0.5)';
+        ctx.fill();
+
+        // Draw floating peak indicator
+        const peakY = baselineY - peaksRef.current[i] - 5;
+        ctx.beginPath();
+        ctx.roundRect(x, peakY, barWidth, 3, 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = '#ffffff';
+        ctx.fill();
+
+        // Draw glass reflection beneath baseline
+        const reflGrad = ctx.createLinearGradient(0, baselineY, 0, baselineY + barHeight * 0.35);
+        reflGrad.addColorStop(0, 'rgba(6, 182, 212, 0.25)');
+        reflGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * (bassFreq / 100 + 1), 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
+        ctx.roundRect(x, baselineY + 2, barWidth, barHeight * 0.35, [0, 0, 4, 4]);
+        ctx.fillStyle = reflGrad;
+        ctx.shadowBlur = 0;
         ctx.fill();
-        ctx.closePath();
-      });
+      }
 
-      requestRef.current = requestAnimationFrame(render);
+      ctx.shadowBlur = 0;
+      animationFrameId = requestAnimationFrame(render);
     };
 
-    requestRef.current = requestAnimationFrame(render);
+    render();
 
     return () => {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
     };
   }, [getAnalyserData, isPlaying]);
 
   return (
-    <canvas 
-      ref={canvasRef} 
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        zIndex: 0,
-        pointerEvents: 'none',
-        opacity: 0.8
-      }}
-    />
+    <div style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none' }}>
+      <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
+      {onBack && (
+        <button
+          onClick={onBack}
+          style={{
+            position: 'absolute',
+            top: 'max(16px, env(safe-area-inset-top))',
+            left: '20px',
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'rgba(255, 255, 255, 0.12)',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '500px',
+            color: 'white',
+            padding: '10px 18px',
+            fontSize: '14px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+            pointerEvents: 'auto',
+          }}
+        >
+          <ArrowLeft size={18} />
+          <span>Back to Art</span>
+        </button>
+      )}
+    </div>
   );
 };
 

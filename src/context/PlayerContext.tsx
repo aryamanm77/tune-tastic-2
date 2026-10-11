@@ -63,6 +63,7 @@ interface PlayerContextType {
   downloadedSongs: Set<string>;
   downloadProgress: Record<string, number>;
   downloadSong: (song: Song) => Promise<void>;
+  downloadAllSongs: (songs: Song[]) => Promise<void>;
   deleteDownload: (songId: string) => Promise<void>;
   uploadedSongs: Song[];
   uploadSong: (song: Song, blob: Blob) => Promise<void>;
@@ -660,21 +661,25 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const audio = audioRef.current;
     if (audio) {
       try {
-        if (song.audioId.startsWith('upload:')) {
+        if (song.audioUrl) {
+          audio.src = song.audioUrl;
+        } else if (song.audioId && song.audioId.startsWith('upload:')) {
           const uploaded = await getUploadedSong(song.id);
           if (uploaded) {
             audio.src = URL.createObjectURL(uploaded.audioBlob);
+          } else {
+            audio.src = getAudioUrl(song.audioId);
           }
         } else {
           const downloaded = await getDownloadedSong(song.id);
           if (downloaded) {
             audio.src = URL.createObjectURL(downloaded.audioBlob);
           } else {
-            audio.src = song.audioUrl || getAudioUrl(song.audioId);
+            audio.src = song.audioId ? getAudioUrl(song.audioId) : (song.audioUrl || '');
           }
         }
       } catch (e) {
-        audio.src = song.audioUrl || getAudioUrl(song.audioId);
+        audio.src = song.audioUrl || (song.audioId ? getAudioUrl(song.audioId) : '');
       }
       
       audio.load();
@@ -692,13 +697,30 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     
     setDownloadProgress(prev => ({ ...prev, [song.id]: 0 }));
     try {
-      const url = song.audioUrl || getAudioUrl(song.audioId);
+      const url = song.audioUrl || (song.audioId ? getAudioUrl(song.audioId) : '');
+      if (!url) throw new Error('No audio URL found');
+      
       const response = await fetch(url);
       if (!response.ok) throw new Error('Network response was not ok');
       const blob = await response.blob();
       
       await saveDownloadedSong(song, blob);
       setDownloadedSongs(prev => new Set(prev).add(song.id));
+
+      // Also trigger direct browser file download for the user's files folder
+      try {
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        const cleanTitle = (song.title || 'song').replace(/[/\\?%*:|"<>]/g, '');
+        const cleanArtist = (song.artist || 'artist').replace(/[/\\?%*:|"<>]/g, '');
+        a.download = `${cleanArtist} - ${cleanTitle}.m4a`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+      } catch (_) {}
+
       setDownloadProgress(prev => {
         const next = { ...prev };
         delete next[song.id];
@@ -711,6 +733,12 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         delete next[song.id];
         return next;
       });
+    }
+  };
+
+  const downloadAllSongs = async (songsToDownload: Song[]) => {
+    for (const s of songsToDownload) {
+      await downloadSong(s);
     }
   };
 
@@ -902,6 +930,7 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       downloadedSongs,
       downloadProgress,
       downloadSong,
+      downloadAllSongs,
       deleteDownload,
       uploadedSongs,
       uploadSong,

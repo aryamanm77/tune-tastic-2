@@ -9,7 +9,7 @@ import { getCoverArtUrl } from '../utils/cloudinary';
 import {
   Play, Pause, SkipBack, SkipForward, Shuffle, Repeat,
   Heart, ChevronDown, MoreHorizontal, Volume2, VolumeX,
-  Sparkles, Disc, Image as ImageIcon, Download, Plus
+  Sparkles, Disc, Image as ImageIcon, Download, Plus, ListMusic
 } from 'lucide-react';
 import Visualizer from './Visualizer';
 import VinylScratch from './VinylScratch';
@@ -30,8 +30,8 @@ const LyricsCard: React.FC<{ artist: string, title: string }> = ({ artist, title
     setError(false);
     
     // Clean up artist and title for better API matching
-    const cleanArtist = artist.split(',')[0].trim();
-    const cleanTitle = title.replace(/\(.*?\)/g, '').trim();
+    const cleanArtist = (artist || '').split(',')[0].trim();
+    const cleanTitle = (title || '').replace(/\(.*?\)/g, '').trim();
 
     if (!cleanArtist || cleanArtist === 'Unknown Artist') {
       setError(true);
@@ -97,7 +97,8 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose }) => {
     isShuffled, repeatMode,
     togglePlayPause, nextSong, prevSong, seekTo, setVolume,
     toggleShuffle, cycleRepeat, toggleLike, isLiked,
-    downloadSong, downloadedSongs, downloadProgress
+    downloadSong, downloadedSongs, downloadProgress,
+    addToQueue
   } = usePlayer();
 
   const [touching, setTouching] = useState(false);
@@ -138,8 +139,6 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose }) => {
         pointerEvents: 'none',
       }} />
 
-      {activeMode === 'party' && <Visualizer />}
-
       {/* Content */}
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', minHeight: '100%', padding: '0 28px' }}>
 
@@ -167,6 +166,12 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose }) => {
                   style={{ width: '100%', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left' }}
                 >
                   <Plus size={16} /> Add to Playlist
+                </button>
+                <button 
+                  onClick={() => { setShowMenu(false); addToQueue(currentSong); }}
+                  style={{ width: '100%', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left' }}
+                >
+                  <ListMusic size={16} /> Add to Queue
                 </button>
                 <button 
                   onClick={() => { setShowMenu(false); downloadSong(currentSong); }}
@@ -209,11 +214,12 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose }) => {
         {/* Central Display Area */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 0', zIndex: 2 }}>
           {activeMode === 'vinyl' && <VinylScratch />}
-          {activeMode === 'aura' && <AuraMode />}
+          {activeMode === 'aura' && <AuraMode onBack={() => setActiveMode('normal')} />}
+          {activeMode === 'party' && <Visualizer onBack={() => setActiveMode('normal')} />}
           
-          {(activeMode === 'normal' || activeMode === 'party') && (
+          {activeMode === 'normal' && (
             <img
-              src={currentSong.coverArt || getCoverArtUrl(currentSong.audioId)}
+              src={currentSong.coverArt || (currentSong.audioId ? getCoverArtUrl(currentSong.audioId) : './logo.png')}
               onError={e => {
                 if (e.currentTarget.src.includes('600x600bb')) {
                   e.currentTarget.src = e.currentTarget.src.replace('600x600bb', '100x100bb');
@@ -228,7 +234,7 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose }) => {
                 aspectRatio: '1 / 1',
                 borderRadius: '12px',
                 objectFit: 'cover',
-                boxShadow: activeMode === 'party' ? '0 0 40px rgba(29, 185, 84, 0.4)' : '0 24px 64px rgba(0,0,0,0.6)',
+                boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
                 transform: touching ? 'scale(0.95)' : isPlaying ? 'scale(1)' : 'scale(0.88)',
                 transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
               }}

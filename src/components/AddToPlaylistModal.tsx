@@ -6,7 +6,7 @@
  */
 import React, { useState } from 'react';
 import { usePlayer, Song } from '../context/PlayerContext';
-import { Heart, Plus, ListMusic, Check, X } from 'lucide-react';
+import { Heart, Plus, ListMusic, Check, X, Download } from 'lucide-react';
 
 interface AddToPlaylistModalProps {
   song: Song;
@@ -14,7 +14,7 @@ interface AddToPlaylistModalProps {
 }
 
 const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({ song, onClose }) => {
-  const { playlists, createPlaylist, addToPlaylist, toggleLike, isLiked, addToQueue } = usePlayer();
+  const { playlists, createPlaylist, addToPlaylist, toggleLike, isLiked, addToQueue, downloadSong, downloadedSongs, downloadProgress } = usePlayer();
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
   const [added, setAdded] = useState<string | null>(null);
@@ -130,6 +130,20 @@ const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({ song, onClose }
           </div>
           <span style={{ fontSize: '15px', fontWeight: 500 }}>
             {queuedToast ? 'Added to queue!' : 'Add to queue'}
+          </span>
+        </button>
+
+        {/* Download */}
+        <button className="apt-row" onClick={() => { downloadSong(song); onClose(); }}>
+          <div style={{
+            width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
+            background: downloadedSongs.has(song.id) ? 'rgba(29,185,84,0.2)' : 'rgba(255,255,255,0.08)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            {downloadedSongs.has(song.id) ? <Check size={20} color="var(--spotify-green)" /> : <Download size={20} color="white" />}
+          </div>
+          <span style={{ fontSize: '15px', fontWeight: 500 }}>
+            {downloadedSongs.has(song.id) ? 'Downloaded' : downloadProgress[song.id] !== undefined ? 'Downloading...' : 'Download song'}
           </span>
         </button>
 
