@@ -37,6 +37,7 @@ interface PlayerContextType {
   playlists: Playlist[];
   likedSongs: Song[];
   recentlyPlayed: Song[];
+  removeFromRecentlyPlayed: (songId: string) => void;
   setQueue: React.Dispatch<React.SetStateAction<Song[]>>;
   playSong: (song: Song, newQueue?: Song[]) => void;
   togglePlayPause: () => void;
@@ -46,7 +47,7 @@ interface PlayerContextType {
   setVolume: (volume: number) => void;
   toggleShuffle: () => void;
   cycleRepeat: () => void;
-  createPlaylist: (name: string) => void;
+  createPlaylist: (name: string, initialSong?: Song) => Playlist;
   addToPlaylist: (playlistId: string, song: Song) => void;
   toggleLike: (song: Song) => void;
   isLiked: (songId: string) => boolean;
@@ -132,6 +133,10 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   useEffect(() => {
     localStorage.setItem('tunetastic_recent', JSON.stringify(recentlyPlayed));
   }, [recentlyPlayed]);
+
+  const removeFromRecentlyPlayed = (songId: string) => {
+    setRecentlyPlayed(prev => prev.filter(s => s.id !== songId));
+  };
 
   useEffect(() => {
     localStorage.setItem('tunetastic_user_queue', JSON.stringify(userQueue));
@@ -238,13 +243,16 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     } catch (_) { }
   }, [currentTime, duration]);
 
-  const [djState, setDjStateInternal] = useState({ 
-    bass: 0, spin8D: false, nightcore: false, 
-    reverb: 0, speed: 10, lofi: false, karaoke: false,
-    tremolo: false, phaser: false, vinyl: false,
-    chorus: false, telephone: false, alien: false,
-    era: 2026, hapticBass: false, spatialAudio: false, motionDJ: false, astralMode: false,
-    zeroGravity: false, nebulaMode: false, isWarping: false, themeBackground: 'none'
+  const [djState, setDjStateInternal] = useState(() => {
+    const savedTheme = localStorage.getItem('tunetastic_theme_bg') || 'racing-cars';
+    return {
+      bass: 0, spin8D: false, nightcore: false, 
+      reverb: 0, speed: 10, lofi: false, karaoke: false,
+      tremolo: false, phaser: false, vinyl: false,
+      chorus: false, telephone: false, alien: false,
+      era: 2026, hapticBass: false, spatialAudio: false, motionDJ: false, astralMode: false,
+      zeroGravity: false, nebulaMode: false, isWarping: false, themeBackground: savedTheme
+    };
   });
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
@@ -539,6 +547,9 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, [djState, isPlaying]);
 
   const setDjState = (newState: Partial<typeof djState>) => {
+    if (newState.themeBackground) {
+      localStorage.setItem('tunetastic_theme_bg', newState.themeBackground);
+    }
     setDjStateInternal(prev => ({ ...prev, ...newState }));
   };
 
@@ -828,9 +839,21 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setRepeatMode(prev => prev === 'none' ? 'all' : prev === 'all' ? 'one' : 'none');
   };
 
-  const createPlaylist = (name: string) => {
-    const newPlaylist: Playlist = { id: crypto.randomUUID(), name, songs: [] };
-    setPlaylists([...playlists, newPlaylist]);
+  const createPlaylist = (name: string, initialSong?: Song): Playlist => {
+    const newPlaylist: Playlist = {
+      id: crypto.randomUUID(),
+      name,
+      songs: initialSong ? [initialSong] : [],
+      coverArt: initialSong ? (initialSong.coverArt || (initialSong.audioId ? getAudioUrl(initialSong.audioId) : undefined)) : undefined
+    };
+    setPlaylists(prev => {
+      const next = [...prev, newPlaylist];
+      try {
+        localStorage.setItem('tunetastic_playlists', JSON.stringify(next));
+      } catch (_) {}
+      return next;
+    });
+    return newPlaylist;
   };
 
   const addToPlaylist = (playlistId: string, song: Song) => {
@@ -912,7 +935,7 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       playbackTracklist,
       clearQueue,
       removeFromQueue,
-      playlists, likedSongs, recentlyPlayed,
+      playlists, likedSongs, recentlyPlayed, removeFromRecentlyPlayed,
       setQueue: setUserQueue,
       playSong, togglePlayPause, nextSong, prevSong, seekTo, setVolume, toggleShuffle, cycleRepeat,
       createPlaylist, addToPlaylist, toggleLike, isLiked, clearSong, setPlaylists, deletePlaylist, renamePlaylist, addToQueue,

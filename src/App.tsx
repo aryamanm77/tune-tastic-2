@@ -12,6 +12,7 @@ import ItunesSearchView from './components/ItunesSearchView';
 import NebulaBackground from './components/NebulaBackground';
 import DownloadsView from './components/DownloadsView';
 import UploadsView from './components/UploadsView';
+import { VIDEO_CATEGORIES } from './data/videoCategories';
 
 const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'home' | 'search' | 'premium' | 'library' | 'playlist' | 'dj' | 'downloads' | 'uploads'>('home');
@@ -35,10 +36,16 @@ const AppContent: React.FC = () => {
     setActiveTab('playlist');
   };
 
+  const activeCategory = VIDEO_CATEGORIES.find(c => c.id === djState.themeBackground) || VIDEO_CATEGORIES[0];
+  const activeVideoUrl = djState.themeBackground?.startsWith('http')
+    ? djState.themeBackground
+    : (activeCategory?.videoUrl || VIDEO_CATEGORIES[0].videoUrl);
+
   return (
     <>
-      {/* Real Video Background */}
+      {/* Real Video Background Across Entire App */}
       <video
+        key={activeVideoUrl}
         autoPlay
         loop
         muted
@@ -51,13 +58,13 @@ const AppContent: React.FC = () => {
           height: '100vh',
           objectFit: 'cover',
           zIndex: -2,
-          opacity: 0.6,
-          filter: 'hue-rotate(30deg) brightness(0.8)'
+          opacity: 0.55,
+          pointerEvents: 'none',
         }}
       >
-        <source src="https://assets.mixkit.co/videos/preview/mixkit-purple-and-blue-neon-waves-22879-large.mp4" type="video/mp4" />
+        <source src={activeVideoUrl} type="video/mp4" />
       </video>
-      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: -1, pointerEvents: 'none' }} />
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: -1, pointerEvents: 'none' }} />
       <NebulaBackground />
       <div className="app-container" style={{ position: 'relative', zIndex: 10 }}>
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onOpenPlaylist={navigateToPlaylist} />

@@ -9,7 +9,7 @@ import { getCoverArtUrl } from '../utils/cloudinary';
 import {
   Play, Pause, SkipBack, SkipForward, Shuffle, Repeat,
   Heart, ChevronDown, MoreHorizontal, Volume2, VolumeX,
-  Sparkles, Disc, Image as ImageIcon, Download, Plus, ListMusic
+  Sparkles, Disc, Image as ImageIcon, Download, Plus, ListMusic, Trash2
 } from 'lucide-react';
 import Visualizer from './Visualizer';
 import VinylScratch from './VinylScratch';
@@ -98,7 +98,7 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose }) => {
     togglePlayPause, nextSong, prevSong, seekTo, setVolume,
     toggleShuffle, cycleRepeat, toggleLike, isLiked,
     downloadSong, downloadedSongs, downloadProgress,
-    addToQueue
+    addToQueue, deleteDownload
   } = usePlayer();
 
   const [touching, setTouching] = useState(false);
@@ -123,7 +123,10 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose }) => {
       background: 'var(--dynamic-bg-color, #1e3a29)',
       display: 'flex', flexDirection: 'column',
       animation: 'npSlideUp 0.32s cubic-bezier(0.32,0.72,0,1)',
-      overflowY: 'auto'
+      overflowY: 'auto',
+      overflowX: 'hidden',
+      scrollbarGutter: 'stable',
+      scrollbarWidth: 'thin'
     }}>
       <style>{`
         @keyframes npSlideUp {
@@ -159,7 +162,7 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose }) => {
                 position: 'absolute', top: '100%', right: 0,
                 backgroundColor: '#282828', borderRadius: '4px',
                 boxShadow: '0 8px 16px rgba(0,0,0,0.8)',
-                zIndex: 100, minWidth: '200px', overflow: 'hidden'
+                zIndex: 100, minWidth: '220px', overflow: 'hidden'
               }}>
                 <button 
                   onClick={() => { setShowMenu(false); setShowAddModal(true); }}
@@ -173,13 +176,22 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose }) => {
                 >
                   <ListMusic size={16} /> Add to Queue
                 </button>
-                <button 
-                  onClick={() => { setShowMenu(false); downloadSong(currentSong); }}
-                  style={{ width: '100%', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left' }}
-                >
-                  <Download size={16} /> 
-                  {downloadedSongs.has(currentSong.id) ? 'Downloaded' : downloadProgress[currentSong.id] !== undefined ? 'Downloading...' : 'Download'}
-                </button>
+                {downloadedSongs.has(currentSong.id) ? (
+                  <button 
+                    onClick={() => { setShowMenu(false); deleteDownload(currentSong.id); }}
+                    style={{ width: '100%', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'none', border: 'none', color: '#ff6b6b', cursor: 'pointer', textAlign: 'left' }}
+                  >
+                    <Trash2 size={16} color="#ff6b6b" /> Remove from Downloads
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => { setShowMenu(false); downloadSong(currentSong); }}
+                    style={{ width: '100%', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left' }}
+                  >
+                    <Download size={16} /> 
+                    {downloadProgress[currentSong.id] !== undefined ? 'Downloading...' : 'Download song'}
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -212,7 +224,7 @@ const NowPlayingScreen: React.FC<NowPlayingScreenProps> = ({ onClose }) => {
         </div>
 
         {/* Central Display Area */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 0', zIndex: 2 }}>
+        <div style={{ flex: '1 0 auto', minHeight: '310px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px 0', zIndex: 2 }}>
           {activeMode === 'vinyl' && <VinylScratch />}
           {activeMode === 'aura' && <AuraMode onBack={() => setActiveMode('normal')} />}
           {activeMode === 'party' && <Visualizer onBack={() => setActiveMode('normal')} />}

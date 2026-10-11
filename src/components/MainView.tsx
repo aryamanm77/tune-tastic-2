@@ -1,16 +1,18 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { usePlayer, Song } from '../context/PlayerContext';
 import { getCoverArtUrl } from '../utils/cloudinary';
-import { Play, MoreHorizontal, Plus, Download, Check, Loader } from 'lucide-react';
+import { Play, MoreHorizontal, Plus, Download, Check, Loader, Trash2, X } from 'lucide-react';
 import TuneTasticLogo from './TuneTasticLogo';
 import AddToPlaylistModal from './AddToPlaylistModal';
 
 const MainView: React.FC = () => {
-  const { songs, currentSong, playSong, togglePlayPause, createPlaylist, recentlyPlayed, downloadedSongs, downloadProgress, downloadSong } = usePlayer();
+  const { songs, currentSong, playSong, togglePlayPause, createPlaylist, recentlyPlayed, removeFromRecentlyPlayed, downloadedSongs, downloadProgress, downloadSong } = usePlayer();
   const [modalSong, setModalSong] = useState<Song | null>(null);
   const [creatingPlaylist, setCreatingPlaylist] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [activeArtist, setActiveArtist] = useState<string>('All');
+  const [deleteRecentSong, setDeleteRecentSong] = useState<Song | null>(null);
+  const longPressTimerRef = useRef<any>(null);
 
   // Build unique artist list from songs
   const artists = useMemo(() => {
@@ -53,7 +55,10 @@ const MainView: React.FC = () => {
       {/* Recently Played */}
       {recentlyPlayed.length > 0 && (
         <div style={{ marginBottom: '32px' }}>
-          <h2 style={{ marginBottom: '16px', fontSize: '22px', fontWeight: 700 }}>Recently Played</h2>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 700 }}>Recently Played</h2>
+            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>Long-press to remove</span>
+          </div>
           <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '8px' }}>
             {recentlyPlayed.slice(0, 10).map((song: Song) => {
               const isCurrent = currentSong?.id === song.id;
@@ -61,6 +66,21 @@ const MainView: React.FC = () => {
                 <div
                   key={`recent-${song.id}`}
                   onClick={() => handlePlay(song)}
+                  onTouchStart={() => {
+                    longPressTimerRef.current = setTimeout(() => {
+                      setDeleteRecentSong(song);
+                    }, 500);
+                  }}
+                  onTouchEnd={() => {
+                    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+                  }}
+                  onTouchMove={() => {
+                    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+                  }}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setDeleteRecentSong(song);
+                  }}
                   style={{
                     flexShrink: 0,
                     width: '140px',
@@ -69,6 +89,9 @@ const MainView: React.FC = () => {
                     borderRadius: '8px',
                     backgroundColor: isCurrent ? 'rgba(29,185,84,0.12)' : 'rgba(255,255,255,0.05)',
                     transition: 'background-color 0.2s',
+                    position: 'relative',
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
                   }}
                   onMouseOver={e => { if (!isCurrent) (e.currentTarget as HTMLDivElement).style.backgroundColor = 'rgba(255,255,255,0.1)'; }}
                   onMouseOut={e => { if (!isCurrent) (e.currentTarget as HTMLDivElement).style.backgroundColor = 'rgba(255,255,255,0.05)'; }}
@@ -80,6 +103,35 @@ const MainView: React.FC = () => {
                       alt={song.title}
                       style={{ width: '116px', height: '116px', borderRadius: '6px', objectFit: 'cover', display: 'block' }}
                     />
+                    
+                    {/* Delete hover button on desktop */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteRecentSong(song);
+                      }}
+                      title="Remove from Recently Played"
+                      style={{
+                        position: 'absolute',
+                        top: '6px',
+                        right: '6px',
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        backgroundColor: 'rgba(0,0,0,0.65)',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        padding: 0,
+                        zIndex: 2,
+                      }}
+                    >
+                      <X size={13} />
+                    </button>
+
                     {isCurrent && (
                       <div style={{
                         position: 'absolute', bottom: '6px', right: '6px',
@@ -97,6 +149,85 @@ const MainView: React.FC = () => {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Delete Recent Song Confirmation Modal */}
+      {deleteRecentSong && (
+        <div
+          onClick={() => setDeleteRecentSong(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            background: 'rgba(0,0,0,0.7)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: '#242424',
+              borderRadius: '16px',
+              padding: '24px',
+              maxWidth: '360px',
+              width: '100%',
+              boxShadow: '0 16px 40px rgba(0,0,0,0.8)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              textAlign: 'center',
+              animation: 'popIn 0.2s ease-out',
+            }}
+          >
+            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <Trash2 size={24} color="#ef4444" />
+            </div>
+            <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 700, color: 'white' }}>Remove from Recents?</h3>
+            <p style={{ margin: '0 0 20px', fontSize: '14px', color: 'rgba(255,255,255,0.6)' }}>
+              Remove <strong style={{ color: 'white' }}>{deleteRecentSong.title}</strong> from your recently played history?
+            </p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={() => setDeleteRecentSong(null)}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '100px',
+                  background: 'rgba(255,255,255,0.1)',
+                  color: 'white',
+                  border: 'none',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  removeFromRecentlyPlayed(deleteRecentSong.id);
+                  setDeleteRecentSong(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '100px',
+                  background: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 16px rgba(239, 68, 68, 0.4)',
+                }}
+              >
+                Remove
+              </button>
+            </div>
           </div>
         </div>
       )}

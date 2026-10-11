@@ -1,20 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { getCoverArtUrl } from '../utils/cloudinary';
 import {
   Zap, AudioLines, Sparkles, Music2, Wind, Gauge,
-  Radio, HeartPulse, Orbit, Disc, Users, PhoneCall, Bot, Activity, Compass, Hexagon, Rocket, Moon, Palette
+  Radio, HeartPulse, Orbit, Disc, Users, PhoneCall, Bot, Activity, Compass, Hexagon, Rocket, Moon,
+  Film, Check, X
 } from 'lucide-react';
 import TimeMachine from './TimeMachine';
 import GhostWhisperer from './GhostWhisperer';
 import MotionControlDJ from './MotionControlDJ';
 import { useHapticBass } from '../hooks/useHapticBass';
 import { useAnchorSpatialAudio } from '../hooks/useAnchorSpatialAudio';
+import { VIDEO_CATEGORIES } from '../data/videoCategories';
 
 const DJView: React.FC = () => {
   const { djState, setDjState, isPlaying, currentSong } = usePlayer();
+  const [showVideoModal, setShowVideoModal] = useState(false);
   const { isHitting } = useHapticBass(djState.hapticBass ?? false);
   const { requestPermission: requestSpatialAudio } = useAnchorSpatialAudio(djState.spatialAudio ?? false);
+
+  const activeCategory = VIDEO_CATEGORIES.find(c => c.id === djState.themeBackground) || VIDEO_CATEGORIES[0];
 
   // ─── Toggle switch ──────────────────────────────────────────────────────────
   const Toggle = ({ active, onClick }: { active: boolean; onClick: () => void }) => (
@@ -232,28 +237,28 @@ const DJView: React.FC = () => {
         />
 
         <Row
-          icon={<Palette size={20} />}
-          title="Animated Backgrounds"
-          desc="Change the dynamic app background"
+          icon={<Film size={20} color="var(--spotify-green)" />}
+          title="App Video Backgrounds (20 Real Clips)"
+          desc={`Playing across entire app: ${activeCategory.icon} ${activeCategory.name}`}
           right={
-            <select 
-              value={djState.themeBackground || 'none'}
-              onChange={e => setDjState({ themeBackground: e.target.value, nebulaMode: false })}
+            <button
+              onClick={() => setShowVideoModal(true)}
               style={{
-                background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.2)',
+                display: 'flex', alignItems: 'center', gap: '8px',
+                background: 'rgba(255,255,255,0.12)',
+                border: '1px solid rgba(255,255,255,0.25)',
                 color: 'white',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                outline: 'none',
-                cursor: 'pointer'
+                padding: '8px 14px',
+                borderRadius: '100px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: 600,
+                transition: 'all 0.2s ease',
               }}
             >
-              <option value="none">Default</option>
-              <option value="theme-ocean-waves">Ocean Waves</option>
-              <option value="theme-cyber-matrix">Cyber Matrix</option>
-              <option value="theme-deep-space">Deep Space</option>
-            </select>
+              <span>{activeCategory.icon} {activeCategory.category}</span>
+              <span style={{ fontSize: '11px', color: 'var(--spotify-green)', fontWeight: 700 }}>Choose</span>
+            </button>
           }
         />
 
@@ -393,6 +398,131 @@ const DJView: React.FC = () => {
         )}
       </div>
       </div>
+
+      {/* ── 20 Video Backgrounds Modal ─────────────────────────────── */}
+      {showVideoModal && (
+        <>
+          <div 
+            onClick={() => setShowVideoModal(false)}
+            style={{
+              position: 'fixed', inset: 0,
+              background: 'rgba(0,0,0,0.75)',
+              zIndex: 9998,
+              backdropFilter: 'blur(8px)',
+            }}
+          />
+          <div style={{
+            position: 'fixed',
+            top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '92%', maxWidth: '780px',
+            maxHeight: '85vh',
+            background: '#1a1a1a',
+            borderRadius: '16px',
+            zIndex: 9999,
+            display: 'flex', flexDirection: 'column',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.9)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            overflow: 'hidden'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '20px 24px',
+              borderBottom: '1px solid rgba(255,255,255,0.08)',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              background: '#222'
+            }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Film size={20} color="var(--spotify-green)" /> App Video Backgrounds (20 Real Clips)
+                </h2>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.55)' }}>
+                  Looping real HD video playing continuously in the background of the entire app
+                </p>
+              </div>
+              <button
+                onClick={() => setShowVideoModal(false)}
+                style={{
+                  background: 'rgba(255,255,255,0.1)', border: 'none',
+                  color: 'white', width: '32px', height: '32px',
+                  borderRadius: '50%', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Video Categories Grid */}
+            <div style={{
+              padding: '20px',
+              overflowY: 'auto',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+              gap: '14px'
+            }}>
+              {VIDEO_CATEGORIES.map(cat => {
+                const isSelected = djState.themeBackground === cat.id;
+                return (
+                  <div
+                    key={cat.id}
+                    onClick={() => {
+                      setDjState({ themeBackground: cat.id, nebulaMode: false });
+                      localStorage.setItem('tunetastic_theme_bg', cat.id);
+                      setShowVideoModal(false);
+                    }}
+                    style={{
+                      background: isSelected ? 'rgba(29,185,84,0.15)' : 'rgba(255,255,255,0.05)',
+                      border: isSelected ? '2px solid var(--spotify-green)' : '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '12px',
+                      padding: '14px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      position: 'relative',
+                      display: 'flex', flexDirection: 'column', gap: '8px'
+                    }}
+                    onMouseEnter={e => {
+                      if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                    }}
+                    onMouseLeave={e => {
+                      if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '24px' }}>{cat.icon}</span>
+                      {isSelected ? (
+                        <span style={{
+                          fontSize: '11px', fontWeight: 700, color: 'black',
+                          background: 'var(--spotify-green)', padding: '2px 8px',
+                          borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '3px'
+                        }}>
+                          <Check size={12} strokeWidth={3} /> ACTIVE
+                        </span>
+                      ) : (
+                        <span style={{
+                          fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.4)',
+                          background: 'rgba(255,255,255,0.08)', padding: '2px 8px', borderRadius: '100px'
+                        }}>
+                          {cat.category}
+                        </span>
+                      )}
+                    </div>
+
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'white' }}>
+                        {cat.name}
+                      </h4>
+                      <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.3 }}>
+                        {cat.description}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
