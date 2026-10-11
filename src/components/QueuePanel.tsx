@@ -1,7 +1,7 @@
 import React from 'react';
 import { usePlayer, Song } from '../context/PlayerContext';
 import { getCoverArtUrl } from '../utils/cloudinary';
-import { X, Play, Trash2 } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 
 interface QueuePanelProps {
   onClose: () => void;
@@ -120,14 +120,13 @@ const QueuePanel: React.FC<QueuePanelProps> = ({ onClose }) => {
 
           {queuedSongs.length > 0 ? (
             queuedSongs.map((song, i) => (
-              <div
-                key={`q-${song.id}-${i}`}
+              <div key={`q-${song.id}-${i}`}
                 onClick={() => handlePlayQueued(song, i)}
-                className="song-row"
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px',
                   padding: '8px 16px', cursor: 'pointer',
                   position: 'relative',
+                  transition: 'background 0.15s',
                 }}
                 onMouseOver={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.07)')}
                 onMouseOut={e => (e.currentTarget.style.backgroundColor = 'transparent')}
@@ -139,37 +138,31 @@ const QueuePanel: React.FC<QueuePanelProps> = ({ onClose }) => {
                     alt={song.title}
                     style={{ width: '40px', height: '40px', borderRadius: '4px', objectFit: 'cover', display: 'block' }}
                   />
-                  <div style={{
-                    position: 'absolute', inset: 0, borderRadius: '4px',
-                    backgroundColor: 'rgba(0,0,0,0)', display: 'flex',
-                    alignItems: 'center', justifyContent: 'center',
-                    transition: 'background-color 0.2s',
-                  }}
-                    className="queue-play-overlay"
-                  >
-                    <Play size={16} fill="white" color="white" />
-                  </div>
                 </div>
                 <div style={{ overflow: 'hidden', flex: 1 }}>
                   <p style={{ margin: 0, fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</p>
                   <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.artist}</p>
                 </div>
+                {/* Always-visible delete button */}
                 <button
                   onClick={(e) => handleRemove(song.id, e)}
+                  type="button"
                   title="Remove from queue"
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--text-secondary)',
+                    background: 'rgba(255,75,75,0.12)',
+                    border: '1px solid rgba(255,75,75,0.25)',
+                    color: '#ff6b6b',
                     cursor: 'pointer',
-                    padding: '4px',
+                    padding: '6px',
+                    borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    opacity: 0.6,
+                    flexShrink: 0,
+                    transition: 'background 0.15s, transform 0.15s',
                   }}
-                  onMouseOver={e => e.currentTarget.style.opacity = '1'}
-                  onMouseOut={e => e.currentTarget.style.opacity = '0.6'}
+                  onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,75,75,0.28)'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,75,75,0.12)'; e.currentTarget.style.transform = 'scale(1)'; }}
                 >
                   <Trash2 size={14} />
                 </button>

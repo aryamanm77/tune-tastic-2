@@ -24,68 +24,125 @@ const LyricsCard: React.FC<{ artist: string, title: string }> = ({ artist, title
   const [lyrics, setLyrics] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [source, setSource] = useState<string>('');
 
   useEffect(() => {
     setLyrics(null);
     setError(false);
-    
-    // Clean up artist and title for better API matching
-    const cleanArtist = (artist || '').split(',')[0].trim();
-    const cleanTitle = (title || '').replace(/\(.*?\)/g, '').trim();
+    setSource('');
 
-    if (!cleanArtist || cleanArtist === 'Unknown Artist') {
+    const cleanArtist = (artist || '').split(',')[0].replace(/feat\.?.*/i, '').trim();
+    const cleanTitle  = (title  || '').replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
+
+    if (!cleanArtist || cleanArtist.toLowerCase() === 'unknown artist') {
       setError(true);
       return;
     }
 
+    let cancelled = false;
     setLoading(true);
-    fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(cleanArtist + ' ' + cleanTitle)}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Not found');
-        return res.json();
+
+    const tryLrcLib = () =>
+      fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(cleanArtist + ' ' + cleanTitle)}`)
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => {
+          const hit = data?.find((d: any) => d.plainLyrics) ?? data?.[0];
+          if (hit?.plainLyrics) return { text: hit.plainLyrics, src: 'lrclib' };
+          if (hit?.syncedLyrics) {
+            // strip timestamps like [01:23.45]
+            const stripped = hit.syncedLyrics.replace(/\[\d+:\d+\.\d+\]/g, '').trim();
+            if (stripped) return { text: stripped, src: 'lrclib' };
+          }
+          throw new Error('empty');
+        });
+
+    const tryLyricsOvh = () =>
+      fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(cleanArtist)}/${encodeURIComponent(cleanTitle)}`)
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => {
+          if (data?.lyrics) return { text: data.lyrics.trim(), src: 'lyrics.ovh' };
+          throw new Error('empty');
+        });
+
+    const tryLrcLibByTrack = () =>
+      fetch(`https://lrclib.net/api/get?artist_name=${encodeURIComponent(cleanArtist)}&track_name=${encodeURIComponent(cleanTitle)}`)
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => {
+          if (data?.plainLyrics) return { text: data.plainLyrics, src: 'lrclib' };
+          if (data?.syncedLyrics) {
+            const stripped = data.syncedLyrics.replace(/\[\d+:\d+\.\d+\]/g, '').trim();
+            if (stripped) return { text: stripped, src: 'lrclib' };
+          }
+          throw new Error('empty');
+        });
+
+    // Chain: lrclib search → lrclib direct get → lyrics.ovh
+    tryLrcLib()
+      .catch(() => tryLrcLibByTrack())
+      .catch(() => tryLyricsOvh())
+      .then(result => {
+        if (cancelled) return;
+        setLyrics(result.text);
+        setSource(result.src);
       })
-      .then(data => {
-        if (data && data.length > 0 && data[0].plainLyrics) {
-          setLyrics(data[0].plainLyrics);
-        } else {
-          setError(true);
-        }
+      .catch(() => {
+        if (!cancelled) setError(true);
       })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
   }, [artist, title]);
 
   return (
     <div style={{
-      backgroundColor: 'var(--dynamic-bg-color, #2a5a3f)', // Slightly lighter than background
-      borderRadius: '12px',
-      padding: '24px',
+      background: 'linear-gradient(135deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.2) 100%)',
+      backdropFilter: 'blur(24px)',
+      WebkitBackdropFilter: 'blur(24px)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: '16px',
+      padding: '28px 24px',
       marginTop: '32px',
       marginBottom: '32px',
       minHeight: '200px',
-      transition: 'background-color 0.5s ease',
-      filter: 'brightness(1.15)',
     }}>
-      <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 800 }}>Lyrics</h3>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+        <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)' }}>Lyrics</h3>
+        {source && <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', letterSpacing: '1px' }}>{source}</span>}
+      </div>
+
       {loading ? (
-        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '24px', fontWeight: 700 }}>Loading lyrics...</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {[1, 0.7, 0.9, 0.6, 0.8].map((w, i) => (
+            <div key={i} style={{
+              height: '18px', borderRadius: '9px',
+              background: `rgba(255,255,255,0.1)`,
+              width: `${w * 100}%`,
+              animation: 'shimmer 1.5s infinite',
+              animationDelay: `${i * 0.1}s`,
+            }} />
+          ))}
+        </div>
       ) : error ? (
-        <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '16px', lineHeight: '1.5' }}>
-          <p>We couldn't find lyrics for this song in the public database.</p>
-          <p style={{ marginTop: '8px', fontSize: '14px', opacity: 0.8 }}>Try playing a more popular track, as the open lyrics API doesn't have every song.</p>
+        <div style={{ textAlign: 'center', padding: '24px 0', color: 'rgba(255,255,255,0.4)' }}>
+          <div style={{ fontSize: '40px', marginBottom: '12px' }}>🎵</div>
+          <p style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>Lyrics not found</p>
+          <p style={{ margin: '8px 0 0', fontSize: '13px', lineHeight: 1.5, opacity: 0.7 }}>
+            This track isn't in our lyrics database yet.<br/>Try a different song.
+          </p>
         </div>
       ) : lyrics ? (
-        <pre style={{
+        <div style={{
+          fontSize: '22px',
+          fontWeight: 700,
+          lineHeight: 1.7,
+          color: 'white',
           whiteSpace: 'pre-wrap',
           fontFamily: 'inherit',
-          fontSize: '24px',
-          fontWeight: 700,
-          lineHeight: '1.5',
-          margin: 0,
-          color: 'white'
         }}>
           {lyrics}
-        </pre>
+        </div>
       ) : null}
     </div>
   );

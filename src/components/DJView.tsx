@@ -24,14 +24,19 @@ const DJView: React.FC = () => {
   // ─── Toggle switch ──────────────────────────────────────────────────────────
   const Toggle = ({ active, onClick }: { active: boolean; onClick: () => void }) => (
     <button
+      type="button"
       onClick={onClick}
+      onMouseDown={e => e.preventDefault()}
       aria-checked={active}
       role="switch"
       style={{
         width: '51px', height: '31px', borderRadius: '16px',
         background: active ? '#1db954' : 'rgba(255,255,255,0.18)',
         border: 'none', cursor: 'pointer', position: 'relative',
-        flexShrink: 0, transition: 'background 0.25s',
+        flexShrink: 0,
+        transition: 'background 0.3s cubic-bezier(0.4,0,0.2,1)',
+        outline: 'none',
+        WebkitTapHighlightColor: 'transparent',
       }}
     >
       <div style={{
@@ -39,8 +44,8 @@ const DJView: React.FC = () => {
         left: active ? '22px' : '2px',
         width: '27px', height: '27px',
         borderRadius: '50%', background: 'white',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-        transition: 'left 0.25s cubic-bezier(.34,1.56,.64,1)',
+        boxShadow: active ? '0 2px 8px rgba(29,185,84,0.4)' : '0 2px 6px rgba(0,0,0,0.3)',
+        transition: 'left 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease',
       }} />
     </button>
   );
