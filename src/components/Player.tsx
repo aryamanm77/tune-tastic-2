@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Volume2, VolumeX, Heart, Timer, X, ListMusic, Maximize2 } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Volume2, VolumeX, Heart, Timer, X, ListMusic, Maximize2, Mic2 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 import { getCoverArtUrl } from '../utils/cloudinary';
 import QueuePanel from './QueuePanel';
@@ -236,6 +236,16 @@ const Player: React.FC = () => {
           style={{ color: showQueue ? 'var(--spotify-green)' : 'var(--text-secondary)' }}
         >
           <ListMusic size={16} />
+        </button>
+
+        {/* Lyrics button */}
+        <button
+          onClick={() => setShowNowPlaying(true)}
+          title="Lyrics (Spotify Synced)"
+          className="hide-mobile"
+          style={{ color: showNowPlaying ? 'var(--spotify-green)' : 'var(--text-secondary)' }}
+        >
+          <Mic2 size={16} />
         </button>
 
         {/* Now Playing Full-screen button */}

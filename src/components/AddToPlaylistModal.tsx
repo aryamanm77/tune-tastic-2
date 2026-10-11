@@ -14,13 +14,14 @@ interface AddToPlaylistModalProps {
 }
 
 const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({ song, onClose }) => {
-  const { playlists, createPlaylist, addToPlaylist, toggleLike, isLiked, addToQueue, downloadSong, downloadedSongs, downloadProgress, deleteDownload } = usePlayer();
+  const { playlists, createPlaylist, addToPlaylist, toggleLike, isLiked, addToQueue, downloadSong, downloadedSongs, downloadProgress, deleteDownload, downloadedSongList } = usePlayer();
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
   const [added, setAdded] = useState<string | null>(null);
   const [queuedToast, setQueuedToast] = useState(false);
   const [createdToast, setCreatedToast] = useState<string | null>(null);
   const liked = isLiked(song.id);
+  const isDownloaded = Boolean(downloadedSongs.has(song.id) || (downloadedSongList && downloadedSongList.some(s => s.id === song.id)));
 
   const handleAddToQueue = () => {
     addToQueue(song);
@@ -135,7 +136,7 @@ const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({ song, onClose }
         </button>
 
         {/* Download or Remove from downloads */}
-        {downloadedSongs.has(song.id) ? (
+        {isDownloaded ? (
           <button className="apt-row" onClick={() => { deleteDownload(song.id); onClose(); }}>
             <div style={{
               width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,

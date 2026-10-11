@@ -533,34 +533,43 @@ body[class*="theme-"] .app-container {
 
 body.video-bg-active .sidebar,
 body[class*="theme-"] .sidebar {
-  background-color: rgba(8, 8, 12, 0.55) !important;
-  backdrop-filter: blur(24px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  background-color: rgba(8, 8, 12, 0.45) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
   border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
 body.video-bg-active .main-view,
 body[class*="theme-"] .main-view {
-  background-color: rgba(10, 10, 16, 0.45) !important;
-  background-image: linear-gradient(to bottom, rgba(30, 58, 41, 0.25) 0%, rgba(10, 10, 16, 0.5) 340px) !important;
-  backdrop-filter: blur(16px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+  background-color: rgba(0, 0, 0, 0.18) !important;
+  background-image: none !important;
+  backdrop-filter: blur(0px) !important;
+  -webkit-backdrop-filter: blur(0px) !important;
   border: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
 body.video-bg-active .player-bar,
 body[class*="theme-"] .player-bar {
-  background-color: rgba(12, 12, 18, 0.65) !important;
-  backdrop-filter: blur(24px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  background-color: rgba(10, 10, 15, 0.6) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
   border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 body.video-bg-active .bottom-nav,
 body[class*="theme-"] .bottom-nav {
   background-color: rgba(12, 12, 18, 0.75) !important;
-  backdrop-filter: blur(24px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+body.video-bg-active .playlist-header,
+body.video-bg-active .playlist-view,
+body.video-bg-active .search-view,
+body.video-bg-active .library-view,
+body.video-bg-active .downloads-view,
+body.video-bg-active .uploads-view {
+  background: transparent !important;
 }
 
 @keyframes spin {

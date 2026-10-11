@@ -194,6 +194,203 @@ const DJView: React.FC = () => {
           </div>
         )}
 
+        {/* ── TOP SECTION: Background Video Animation Studio (Spotify Styled) ─── */}
+        <div style={{
+          margin: '20px 24px 24px',
+          padding: '22px 24px',
+          borderRadius: '20px',
+          background: isVideoActive 
+            ? 'linear-gradient(135deg, rgba(29, 185, 84, 0.14) 0%, rgba(20, 20, 28, 0.85) 100%)' 
+            : 'rgba(255, 255, 255, 0.03)',
+          border: isVideoActive ? '1px solid rgba(29, 185, 84, 0.45)' : '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: isVideoActive ? '0 12px 36px rgba(29, 185, 84, 0.2)' : '0 8px 24px rgba(0,0,0,0.3)',
+          transition: 'all 0.3s ease',
+        }}>
+          {/* Header row with Title and Status */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '44px', height: '44px', borderRadius: '12px',
+                background: isVideoActive ? '#1db954' : 'rgba(255,255,255,0.08)',
+                color: isVideoActive ? '#000000' : 'rgba(255,255,255,0.6)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: isVideoActive ? '0 0 20px rgba(29,185,84,0.5)' : 'none',
+                transition: 'all 0.3s ease'
+              }}>
+                <Film size={22} strokeWidth={2.4} />
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'white' }}>
+                    Background Video Studio
+                  </h2>
+                  <span style={{
+                    fontSize: '11px', fontWeight: 800, padding: '3px 10px', borderRadius: '100px',
+                    background: isVideoActive ? 'rgba(29, 185, 84, 0.25)' : 'rgba(255, 255, 255, 0.08)',
+                    color: isVideoActive ? '#1db954' : 'rgba(255, 255, 255, 0.4)',
+                    border: isVideoActive ? '1px solid rgba(29, 185, 84, 0.4)' : '1px solid transparent',
+                    display: 'flex', alignItems: 'center', gap: '6px'
+                  }}>
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: isVideoActive ? '#1db954' : 'rgba(255,255,255,0.3)', boxShadow: isVideoActive ? '0 0 8px #1db954' : 'none' }} />
+                    {isVideoActive ? 'ACTIVE IN HOME & ALL ROOMS' : 'TURNED OFF'}
+                  </span>
+                </div>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>
+                  Cinematic real video clips playing smoothly across Home, Search, Library, and DJ Studio
+                </p>
+              </div>
+            </div>
+
+            {/* Spotify Style Action Buttons */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (isVideoActive) {
+                    setDjState({ themeBackground: 'none' });
+                    localStorage.setItem('tunetastic_theme_bg', 'none');
+                  } else {
+                    const fallbackId = (activeCategory && activeCategory.id !== 'none') ? activeCategory.id : 'racing-cars';
+                    setDjState({ themeBackground: fallbackId, nebulaMode: false });
+                    localStorage.setItem('tunetastic_theme_bg', fallbackId);
+                  }
+                }}
+                style={{
+                  background: isVideoActive ? '#1db954' : 'white',
+                  color: 'black',
+                  padding: '12px 28px',
+                  borderRadius: '9999px',
+                  fontWeight: 800,
+                  fontSize: '14px',
+                  letterSpacing: '0.4px',
+                  cursor: 'pointer',
+                  border: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  boxShadow: isVideoActive ? '0 6px 24px rgba(29, 185, 84, 0.55)' : '0 4px 16px rgba(255,255,255,0.2)',
+                  transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = 'scale(1.04)';
+                  e.currentTarget.style.boxShadow = isVideoActive ? '0 8px 30px rgba(29, 185, 84, 0.7)' : '0 6px 20px rgba(255,255,255,0.35)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = isVideoActive ? '0 6px 24px rgba(29, 185, 84, 0.55)' : '0 4px 16px rgba(255,255,255,0.2)';
+                }}
+              >
+                <Power size={18} strokeWidth={2.8} />
+                <span>{isVideoActive ? 'Turn Off Background Video' : 'Turn On Background Video'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowVideoModal(true)}
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  color: 'white',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  padding: '12px 20px',
+                  borderRadius: '9999px',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.18)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+              >
+                <Sparkles size={16} color="var(--spotify-green)" />
+                <span>All 20 Categories</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Engine Mode Toggle: YouTube Stream vs Instant Offline */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '12px 18px', borderRadius: '12px',
+            background: 'rgba(0, 0, 0, 0.4)',
+            border: '1px solid rgba(255, 255, 255, 0.06)',
+            marginBottom: '16px',
+            flexWrap: 'wrap', gap: '12px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>Engine Mode:</span>
+              <div style={{ display: 'flex', gap: '6px', background: 'rgba(255,255,255,0.06)', padding: '4px', borderRadius: '100px' }}>
+                <button
+                  type="button"
+                  onClick={() => setDjState({ videoSourceMode: 'youtube' })}
+                  style={{
+                    padding: '6px 14px', borderRadius: '100px', fontSize: '12px', fontWeight: 700,
+                    background: (djState.videoSourceMode || 'youtube') === 'youtube' ? 'var(--spotify-green)' : 'transparent',
+                    color: (djState.videoSourceMode || 'youtube') === 'youtube' ? '#000000' : 'rgba(255,255,255,0.6)',
+                    border: 'none', cursor: 'pointer', transition: 'all 0.2s'
+                  }}
+                >
+                  YouTube 4K (Cropped / No Buttons)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDjState({ videoSourceMode: 'instant' })}
+                  style={{
+                    padding: '6px 14px', borderRadius: '100px', fontSize: '12px', fontWeight: 700,
+                    background: djState.videoSourceMode === 'instant' ? 'var(--spotify-green)' : 'transparent',
+                    color: djState.videoSourceMode === 'instant' ? '#000000' : 'rgba(255,255,255,0.6)',
+                    border: 'none', cursor: 'pointer', transition: 'all 0.2s'
+                  }}
+                >
+                  Instant Offline (Zero Buffer / No Internet)
+                </button>
+              </div>
+            </div>
+
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>Current theme: <strong style={{ color: 'white' }}>{activeCategory.name}</strong></span>
+            </div>
+          </div>
+
+          {/* Quick Select Category Carousel Pills */}
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+            {VIDEO_CATEGORIES.map(c => {
+              const isSelected = isVideoActive && djState.themeBackground === c.id;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => {
+                    setDjState({ themeBackground: c.id, nebulaMode: false });
+                    localStorage.setItem('tunetastic_theme_bg', c.id);
+                  }}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: '100px',
+                    background: isSelected ? 'var(--spotify-green)' : 'rgba(255,255,255,0.06)',
+                    color: isSelected ? 'black' : 'white',
+                    border: isSelected ? '1px solid var(--spotify-green)' : '1px solid rgba(255,255,255,0.1)',
+                    fontWeight: isSelected ? 800 : 500,
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <span>{c.icon}</span>
+                  <span>{c.category}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* ── Spiritual ─── */}
         <SectionHeader title="Spiritual" />
         <Row
@@ -242,123 +439,6 @@ const DJView: React.FC = () => {
           desc="Immersive space visualizer background"
           right={<Toggle active={djState.nebulaMode ?? false} onClick={() => setDjState({ nebulaMode: !djState.nebulaMode, themeBackground: 'none' })} />}
         />
-
-        {/* ── Background Video Animation Studio (20 Real HD Clips) ─── */}
-        <div style={{
-          margin: '16px 24px',
-          padding: '18px 20px',
-          borderRadius: '16px',
-          background: isVideoActive ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.02)',
-          border: isVideoActive ? `1px solid ${activeCategory.accentColor}55` : '1px solid rgba(255, 255, 255, 0.08)',
-          boxShadow: isVideoActive ? `0 8px 32px ${activeCategory.accentColor}18` : 'none',
-          transition: 'all 0.3s ease',
-        }}>
-          {/* Top row with title and ON/OFF Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                width: '38px', height: '38px', borderRadius: '10px',
-                background: isVideoActive ? `${activeCategory.accentColor}25` : 'rgba(255,255,255,0.08)',
-                color: isVideoActive ? activeCategory.accentColor : 'rgba(255,255,255,0.5)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: isVideoActive ? `0 0 16px ${activeCategory.accentColor}44` : 'none',
-                transition: 'all 0.3s ease'
-              }}>
-                <Film size={20} />
-              </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'white' }}>
-                    Background Video Animation
-                  </h3>
-                  <span style={{
-                    fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '100px',
-                    background: isVideoActive ? 'rgba(29, 185, 84, 0.18)' : 'rgba(255, 255, 255, 0.08)',
-                    color: isVideoActive ? '#1db954' : 'rgba(255, 255, 255, 0.4)',
-                    border: isVideoActive ? '1px solid rgba(29, 185, 84, 0.35)' : '1px solid transparent',
-                    display: 'flex', alignItems: 'center', gap: '4px'
-                  }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isVideoActive ? '#1db954' : 'rgba(255,255,255,0.3)', boxShadow: isVideoActive ? '0 0 6px #1db954' : 'none' }} />
-                    {isVideoActive ? 'ACTIVE IN ENTIRE APP' : 'PAUSED'}
-                  </span>
-                </div>
-                <p style={{ margin: '3px 0 0', fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
-                  Real HD video clips playing continuously in background of Home, Search, Playlists & DJ Studio
-                </p>
-              </div>
-            </div>
-            
-            {/* Master ON/OFF Switch */}
-            <Toggle
-              active={isVideoActive}
-              onClick={() => {
-                if (isVideoActive) {
-                  setDjState({ themeBackground: 'none' });
-                  localStorage.setItem('tunetastic_theme_bg', 'none');
-                } else {
-                  const fallbackId = (activeCategory && activeCategory.id !== 'none') ? activeCategory.id : 'racing-cars';
-                  setDjState({ themeBackground: fallbackId, nebulaMode: false });
-                  localStorage.setItem('tunetastic_theme_bg', fallbackId);
-                }
-              }}
-            />
-          </div>
-
-          {/* Active Clip Preview Banner & Change Button */}
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            gap: '16px', padding: '12px 16px', borderRadius: '12px',
-            background: 'rgba(0, 0, 0, 0.35)', border: '1px solid rgba(255, 255, 255, 0.06)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
-              <span style={{ fontSize: '26px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>
-                {activeCategory.icon}
-              </span>
-              <div style={{ minWidth: 0 }}>
-                <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {activeCategory.name}
-                </p>
-                <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {activeCategory.description}
-                </p>
-              </div>
-            </div>
-
-            {/* High-Tech Glowing Action Button */}
-            <button
-              type="button"
-              onClick={() => setShowVideoModal(true)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '8px',
-                background: isVideoActive 
-                  ? `linear-gradient(135deg, ${activeCategory.accentColor}33 0%, rgba(255,255,255,0.12) 100%)`
-                  : 'rgba(255,255,255,0.1)',
-                border: `1px solid ${isVideoActive ? activeCategory.accentColor : 'rgba(255,255,255,0.25)'}`,
-                color: 'white',
-                padding: '10px 18px',
-                borderRadius: '100px',
-                cursor: 'pointer',
-                fontSize: '13px',
-                fontWeight: 700,
-                letterSpacing: '0.3px',
-                whiteSpace: 'nowrap',
-                boxShadow: isVideoActive ? `0 4px 16px ${activeCategory.accentColor}33` : '0 4px 12px rgba(0,0,0,0.3)',
-                transition: 'all 0.25s ease',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-1px) scale(1.02)';
-                e.currentTarget.style.boxShadow = `0 6px 20px ${activeCategory.accentColor}55`;
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'none';
-                e.currentTarget.style.boxShadow = isVideoActive ? `0 4px 16px ${activeCategory.accentColor}33` : '0 4px 12px rgba(0,0,0,0.3)';
-              }}
-            >
-              <Sparkles size={15} color={isVideoActive ? activeCategory.accentColor : 'white'} />
-              <span>Choose Animation (20 Clips)</span>
-            </button>
-          </div>
-        </div>
 
         <Row
           icon={<Activity size={20} color={isHitting ? 'var(--spotify-green)' : 'currentColor'} style={{ transition: 'color 0.1s' }} />}

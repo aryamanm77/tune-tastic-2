@@ -69,7 +69,7 @@ const DownloadsView: React.FC = () => {
       </div>
 
       <div style={{ padding: '0 24px 24px 24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '24px', marginTop: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px', marginTop: '16px' }}>
           <button 
             onClick={handlePlayAll}
             disabled={downloadedSongList.length === 0}
@@ -88,6 +88,36 @@ const DownloadsView: React.FC = () => {
             }}>
             <Play size={28} fill="black" style={{ marginLeft: '4px' }} />
           </button>
+
+          {downloadedSongList.length > 0 && (
+            <button
+              onClick={() => {
+                if (window.confirm('Are you sure you want to delete all downloaded songs?')) {
+                  downloadedSongList.forEach(s => deleteDownload(s.id));
+                }
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                background: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                color: '#ff4d4d',
+                padding: '10px 18px',
+                borderRadius: '100px',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
+              }}
+            >
+              <Trash2 size={15} /> Clear All Downloads
+            </button>
+          )}
         </div>
 
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -97,7 +127,7 @@ const DownloadsView: React.FC = () => {
               <th style={{ padding: '8px 16px', fontWeight: 'normal' }}>Title</th>
               <th className="hide-mobile" style={{ padding: '8px 16px', fontWeight: 'normal' }}>Album</th>
               <th className="hide-mobile" style={{ padding: '8px 16px', textAlign: 'right', fontWeight: 'normal' }}>Duration</th>
-              <th style={{ padding: '8px 16px', width: '40px' }}></th>
+              <th style={{ padding: '8px 16px', textAlign: 'right', fontWeight: 'normal', width: '140px' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -150,21 +180,67 @@ const DownloadsView: React.FC = () => {
                   <td className="hide-mobile" style={{ padding: '12px 16px', color: 'var(--text-secondary)', fontSize: '14px', textAlign: 'right' }}>
                     {formatTime(song.durationMs || 0)}
                   </td>
-                  <td style={{ padding: '8px 8px', whiteSpace: 'nowrap', textAlign: 'right' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'flex-end' }}>
+                  <td style={{ padding: '12px 16px', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
+                      {/* Bold, prominent Delete button */}
                       <button
+                        type="button"
+                        onClick={e => { e.stopPropagation(); deleteDownload(song.id); }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: 'rgba(239, 68, 68, 0.18)',
+                          border: '1px solid rgba(239, 68, 68, 0.45)',
+                          color: '#ff4d4d',
+                          padding: '6px 12px',
+                          borderRadius: '100px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          boxShadow: '0 2px 8px rgba(239, 68, 68, 0.2)'
+                        }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)';
+                          e.currentTarget.style.borderColor = '#ff4d4d';
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.background = 'rgba(239, 68, 68, 0.18)';
+                          e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.45)';
+                        }}
+                        title="Remove song from offline downloads"
+                      >
+                        <Trash2 size={13} strokeWidth={2.5} />
+                        <span>Delete</span>
+                      </button>
+
+                      <button
+                        type="button"
                         onClick={e => { e.stopPropagation(); setModalSong(song); }}
-                        style={{ color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
+                        style={{
+                          color: 'rgba(255,255,255,0.7)',
+                          background: 'rgba(255,255,255,0.08)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          cursor: 'pointer',
+                          padding: '6px',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.background = 'rgba(255,255,255,0.18)';
+                          e.currentTarget.style.color = 'white';
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                          e.currentTarget.style.color = 'rgba(255,255,255,0.7)';
+                        }}
                         title="More options"
                       >
                         <MoreHorizontal size={16} />
-                      </button>
-                      <button
-                        onClick={e => { e.stopPropagation(); deleteDownload(song.id); }}
-                        style={{ color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
-                        title="Remove from downloads"
-                      >
-                        <Trash2 size={15} />
                       </button>
                     </div>
                   </td>

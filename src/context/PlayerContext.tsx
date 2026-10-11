@@ -56,8 +56,8 @@ interface PlayerContextType {
   deletePlaylist: (playlistId: string) => void;
   renamePlaylist: (playlistId: string, newName: string) => void;
   addToQueue: (song: Song) => void;
-  djState: { bass: number; spin8D: boolean; nightcore: boolean; reverb?: number; speed?: number; lofi?: boolean; karaoke?: boolean; tremolo?: boolean; phaser?: boolean; vinyl?: boolean; chorus?: boolean; telephone?: boolean; alien?: boolean; era?: number; hapticBass?: boolean; spatialAudio?: boolean; motionDJ?: boolean; astralMode: boolean; zeroGravity: boolean; nebulaMode: boolean; isWarping: boolean; themeBackground?: string };
-  setDjState: (state: Partial<{ bass: number; spin8D: boolean; nightcore: boolean; reverb: number; speed: number; lofi: boolean; karaoke: boolean; tremolo: boolean; phaser: boolean; vinyl: boolean; chorus: boolean; telephone: boolean; alien: boolean; era: number; hapticBass: boolean; spatialAudio: boolean; motionDJ: boolean; astralMode: boolean; zeroGravity: boolean; nebulaMode: boolean; isWarping: boolean; themeBackground: string }>) => void;
+  djState: { bass: number; spin8D: boolean; nightcore: boolean; reverb?: number; speed?: number; lofi?: boolean; karaoke?: boolean; tremolo?: boolean; phaser?: boolean; vinyl?: boolean; chorus?: boolean; telephone?: boolean; alien?: boolean; era?: number; hapticBass?: boolean; spatialAudio?: boolean; motionDJ?: boolean; astralMode: boolean; zeroGravity: boolean; nebulaMode: boolean; isWarping: boolean; themeBackground?: string; videoSourceMode?: 'youtube' | 'instant' };
+  setDjState: (state: Partial<{ bass: number; spin8D: boolean; nightcore: boolean; reverb: number; speed: number; lofi: boolean; karaoke: boolean; tremolo: boolean; phaser: boolean; vinyl: boolean; chorus: boolean; telephone: boolean; alien: boolean; era: number; hapticBass: boolean; spatialAudio: boolean; motionDJ: boolean; astralMode: boolean; zeroGravity: boolean; nebulaMode: boolean; isWarping: boolean; themeBackground: string; videoSourceMode: 'youtube' | 'instant' }>) => void;
   getAnalyserData: () => Uint8Array;
   setPlaybackRate: (rate: number) => void;
   setPan: (panValue: number) => void;
@@ -70,6 +70,10 @@ interface PlayerContextType {
   uploadedSongs: Song[];
   uploadSong: (song: Song, blob: Blob) => Promise<void>;
   deleteUpload: (songId: string) => Promise<void>;
+  userName: string;
+  setUserName: (name: string) => void;
+  isNameModalOpen: boolean;
+  setIsNameModalOpen: (open: boolean) => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -77,6 +81,37 @@ const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [songs, setSongs] = useState<Song[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const [userName, setUserNameState] = useState<string>(() => {
+    const saved = localStorage.getItem('tunetastic_user_name');
+    if (!saved || saved.trim() === '' || saved === 'Aryaman') return '';
+    return saved.trim();
+  });
+
+  const [isNameModalOpen, setIsNameModalOpen] = useState<boolean>(() => {
+    const saved = localStorage.getItem('tunetastic_user_name');
+    return !saved || saved.trim() === '' || saved === 'Aryaman';
+  });
+
+  useEffect(() => {
+    const saved = localStorage.getItem('tunetastic_user_name');
+    if (saved === 'Aryaman') {
+      localStorage.removeItem('tunetastic_user_name');
+      setUserNameState('');
+      setIsNameModalOpen(true);
+    }
+  }, []);
+
+  const setUserName = (name: string) => {
+    const trimmed = name.trim();
+    if (trimmed && trimmed !== 'Aryaman') {
+      setUserNameState(trimmed);
+      localStorage.setItem('tunetastic_user_name', trimmed);
+    } else {
+      setUserNameState('');
+      localStorage.removeItem('tunetastic_user_name');
+    }
+  };
 
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -245,13 +280,15 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const [djState, setDjStateInternal] = useState(() => {
     const savedTheme = localStorage.getItem('tunetastic_theme_bg') || 'racing-cars';
+    const savedVideoMode = (localStorage.getItem('tunetastic_video_mode') as 'youtube' | 'instant') || 'youtube';
     return {
       bass: 0, spin8D: false, nightcore: false, 
       reverb: 0, speed: 10, lofi: false, karaoke: false,
       tremolo: false, phaser: false, vinyl: false,
       chorus: false, telephone: false, alien: false,
       era: 2026, hapticBass: false, spatialAudio: false, motionDJ: false, astralMode: false,
-      zeroGravity: false, nebulaMode: false, isWarping: false, themeBackground: savedTheme
+      zeroGravity: false, nebulaMode: false, isWarping: false, themeBackground: savedTheme,
+      videoSourceMode: savedVideoMode
     };
   });
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -547,8 +584,11 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, [djState, isPlaying]);
 
   const setDjState = (newState: Partial<typeof djState>) => {
-    if (newState.themeBackground) {
+    if (newState.themeBackground !== undefined) {
       localStorage.setItem('tunetastic_theme_bg', newState.themeBackground);
+    }
+    if (newState.videoSourceMode !== undefined) {
+      localStorage.setItem('tunetastic_video_mode', newState.videoSourceMode);
     }
     setDjStateInternal(prev => ({ ...prev, ...newState }));
   };
@@ -952,7 +992,11 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       deleteDownload,
       uploadedSongs,
       uploadSong,
-      deleteUpload
+      deleteUpload,
+      userName,
+      setUserName,
+      isNameModalOpen,
+      setIsNameModalOpen
     }}>
       {children}
     </PlayerContext.Provider>

@@ -1,18 +1,41 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { usePlayer, Song } from '../context/PlayerContext';
 import { getCoverArtUrl } from '../utils/cloudinary';
-import { Play, MoreHorizontal, Plus, Download, Check, Loader, Trash2, X } from 'lucide-react';
+import { Play, MoreHorizontal, Plus, Download, Check, Loader, Trash2, X, Edit3, User } from 'lucide-react';
 import TuneTasticLogo from './TuneTasticLogo';
 import AddToPlaylistModal from './AddToPlaylistModal';
 
 const MainView: React.FC = () => {
-  const { songs, currentSong, playSong, togglePlayPause, createPlaylist, recentlyPlayed, removeFromRecentlyPlayed, downloadedSongs, downloadProgress, downloadSong } = usePlayer();
+  const { songs, currentSong, playSong, togglePlayPause, createPlaylist, recentlyPlayed, removeFromRecentlyPlayed, downloadedSongs, downloadProgress, downloadSong, userName, setUserName, setIsNameModalOpen } = usePlayer();
   const [modalSong, setModalSong] = useState<Song | null>(null);
   const [creatingPlaylist, setCreatingPlaylist] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [activeArtist, setActiveArtist] = useState<string>('All');
   const [deleteRecentSong, setDeleteRecentSong] = useState<Song | null>(null);
   const longPressTimerRef = useRef<any>(null);
+
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [tempName, setTempName] = useState(userName || '');
+  const [liveGreeting, setLiveGreeting] = useState<string>(() => {
+    const hr = new Date().getHours();
+    if (hr >= 5 && hr < 12) return 'Good morning';
+    if (hr >= 12 && hr < 17) return 'Good afternoon';
+    if (hr >= 17 && hr < 22) return 'Good evening';
+    return 'Good night';
+  });
+
+  React.useEffect(() => {
+    const updateGreeting = () => {
+      const hr = new Date().getHours();
+      if (hr >= 5 && hr < 12) setLiveGreeting('Good morning');
+      else if (hr >= 12 && hr < 17) setLiveGreeting('Good afternoon');
+      else if (hr >= 17 && hr < 22) setLiveGreeting('Good evening');
+      else setLiveGreeting('Good night');
+    };
+    updateGreeting();
+    const interval = setInterval(updateGreeting, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Build unique artist list from songs
   const artists = useMemo(() => {
@@ -52,12 +75,165 @@ const MainView: React.FC = () => {
         </div>
       </div>
 
+      {/* Live Greeting with Name Header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '28px',
+        padding: '18px 24px',
+        background: 'rgba(255, 255, 255, 0.06)',
+        borderRadius: '20px',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+        flexWrap: 'wrap',
+        gap: '16px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: 0 }}>
+          <div style={{
+            width: '48px', height: '48px', borderRadius: '50%',
+            background: 'linear-gradient(135deg, #1db954 0%, #10b981 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '22px', boxShadow: '0 0 20px rgba(29, 185, 84, 0.4)',
+            color: 'white', fontWeight: 800, flexShrink: 0
+          }}>
+            {userName ? userName[0].toUpperCase() : <User size={22} />}
+          </div>
+
+          <div style={{ minWidth: 0 }}>
+            {isEditingName ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (tempName.trim()) {
+                    setUserName(tempName.trim());
+                  }
+                  setIsEditingName(false);
+                }}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}
+              >
+                <span style={{ fontSize: '24px', fontWeight: 800, color: 'white' }}>{liveGreeting},</span>
+                <input
+                  type="text"
+                  value={tempName}
+                  autoFocus
+                  onChange={(e) => setTempName(e.target.value)}
+                  placeholder="Your name..."
+                  style={{
+                    fontSize: '22px',
+                    fontWeight: 800,
+                    color: 'var(--spotify-green)',
+                    background: 'rgba(255,255,255,0.1)',
+                    border: '1.5px solid var(--spotify-green)',
+                    borderRadius: '8px',
+                    padding: '4px 10px',
+                    outline: 'none',
+                    width: '180px'
+                  }}
+                />
+                <button
+                  type="submit"
+                  style={{
+                    background: 'var(--spotify-green)',
+                    color: 'black',
+                    border: 'none',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <Check size={14} strokeWidth={3} /> Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingName(false)}
+                  style={{
+                    background: 'rgba(255,255,255,0.1)',
+                    color: 'white',
+                    border: 'none',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <X size={14} />
+                </button>
+              </form>
+            ) : (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <h1
+                    onClick={() => setIsNameModalOpen(true)}
+                    title="Click to edit your name"
+                    style={{
+                      margin: 0,
+                      fontSize: '26px',
+                      fontWeight: 800,
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <span>{liveGreeting}{userName ? `, ${userName}` : ''}</span>
+                    <span style={{ fontSize: '24px' }}>👋</span>
+                  </h1>
+
+                  {/* Change/Set Name Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsNameModalOpen(true)}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      color: 'rgba(255, 255, 255, 0.85)',
+                      padding: '4px 12px',
+                      borderRadius: '100px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.16)';
+                      e.currentTarget.style.color = 'white';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.85)';
+                    }}
+                  >
+                    <Edit3 size={13} />
+                    <span>{userName ? 'Change Name' : 'Set Name'}</span>
+                  </button>
+                </div>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'rgba(255, 255, 255, 0.55)' }}>
+                  Welcome back to your music sanctuary
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Recently Played */}
       {recentlyPlayed.length > 0 && (
         <div style={{ marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 700 }}>Recently Played</h2>
-            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>Long-press to remove</span>
           </div>
           <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '8px' }}>
             {recentlyPlayed.slice(0, 10).map((song: Song) => {
