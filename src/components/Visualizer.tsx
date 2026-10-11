@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
-import { ArrowLeft, Play, Pause, SkipBack, SkipForward, Rocket, Waves, Zap } from 'lucide-react';
+import { ArrowLeft, Play, Pause, SkipBack, SkipForward, Rocket, Zap } from 'lucide-react';
 import { getCoverArtUrl } from '../utils/cloudinary';
 
 interface VisualizerProps {
   onBack?: () => void;
 }
 
-type VisualizerMode = 'tunnel' | 'waves' | 'orb';
+type VisualizerMode = 'tunnel' | 'orb';
 
 export const Visualizer: React.FC<VisualizerProps> = ({ onBack }) => {
   const { currentSong, isPlaying, togglePlayPause, nextSong, prevSong, getAnalyserData } = usePlayer();
@@ -122,8 +122,6 @@ export const Visualizer: React.FC<VisualizerProps> = ({ onBack }) => {
 
       if (mode === 'tunnel') {
         renderCyberTunnel(ctx, width, height, t, bass, mid, treble);
-      } else if (mode === 'waves') {
-        renderLiquidWaves(ctx, width, height, t, bass, mid, treble, data, hasAudio);
       } else if (mode === 'orb') {
         renderNeonOrb(ctx, width, height, t, bass, mid, treble, data, hasAudio);
       }
@@ -249,90 +247,9 @@ export const Visualizer: React.FC<VisualizerProps> = ({ onBack }) => {
       c.lineWidth = 1.5;
       c.shadowColor = '#ec4899';
       c.stroke();
-      c.restore();
     };
 
-    // --- MODE 2: LIQUID SILK WAVES (LUXURY FLUID AURORA) ---
-    const renderLiquidWaves = (
-      c: CanvasRenderingContext2D,
-      w: number,
-      h: number,
-      t: number,
-      b: number,
-      m: number,
-      tr: number,
-      data: Uint8Array | null,
-      hasAudio: boolean
-    ) => {
-      const bgGrad = c.createRadialGradient(w / 2, h * 0.5, 10, w / 2, h * 0.5, Math.max(w, h));
-      bgGrad.addColorStop(0, '#0a0e28');
-      bgGrad.addColorStop(1, '#020409');
-      c.fillStyle = bgGrad;
-      c.fillRect(0, 0, w, h);
-
-      const layers = [
-        { color1: 'rgba(56, 189, 248, 0.55)', color2: 'rgba(99, 102, 241, 0)', speed: 1.2, freq: 0.003, amp: h * 0.15 * (0.8 + b * 1.5), phase: 0 },
-        { color1: 'rgba(168, 85, 247, 0.5)', color2: 'rgba(236, 72, 153, 0)', speed: 1.8, freq: 0.004, amp: h * 0.12 * (0.8 + m * 1.3), phase: 2.1 },
-        { color1: 'rgba(16, 185, 129, 0.45)', color2: 'rgba(6, 182, 212, 0)', speed: 2.2, freq: 0.005, amp: h * 0.09 * (0.8 + tr * 1.2), phase: 4.2 },
-      ];
-
-      const baseline = h * 0.5;
-
-      layers.forEach((layer) => {
-        c.save();
-        c.beginPath();
-        c.moveTo(0, h);
-        c.lineTo(0, baseline);
-
-        const step = 8;
-        for (let x = 0; x <= w; x += step) {
-          let audioMod = 0;
-          if (hasAudio && data) {
-            const dataIdx = Math.floor((x / w) * Math.min(data.length, 90));
-            audioMod = ((data[dataIdx] || 0) / 255) * 45;
-          }
-
-          const y = baseline +
-            Math.sin(x * layer.freq + t * layer.speed + layer.phase) * layer.amp +
-            Math.cos(x * layer.freq * 1.8 - t * layer.speed * 0.7) * (layer.amp * 0.35) -
-            audioMod;
-
-          c.lineTo(x, y);
-        }
-
-        c.lineTo(w, h);
-        c.closePath();
-
-        const waveGrad = c.createLinearGradient(0, baseline - layer.amp, 0, h);
-        waveGrad.addColorStop(0, layer.color1);
-        waveGrad.addColorStop(1, layer.color2);
-
-        c.fillStyle = waveGrad;
-        c.shadowBlur = 24;
-        c.shadowColor = layer.color1;
-        c.fill();
-        c.restore();
-      });
-
-      // Shimmer crest line
-      c.save();
-      c.beginPath();
-      for (let x = 0; x <= w; x += 10) {
-        const y = baseline +
-          Math.sin(x * 0.0035 + t * 1.5) * (h * 0.12 * (0.8 + b)) +
-          Math.cos(x * 0.006 - t * 1.1) * 16;
-        if (x === 0) c.moveTo(x, y);
-        else c.lineTo(x, y);
-      }
-      c.strokeStyle = `rgba(255, 255, 255, ${0.45 + b * 0.5})`;
-      c.lineWidth = 2.5;
-      c.shadowBlur = 14;
-      c.shadowColor = '#ffffff';
-      c.stroke();
-      c.restore();
-    };
-
-    // --- MODE 3: 3D NEON ORB ---
+    // --- MODE 2: 3D NEON ORB ---
     const renderNeonOrb = (
       c: CanvasRenderingContext2D,
       w: number,
@@ -590,7 +507,6 @@ export const Visualizer: React.FC<VisualizerProps> = ({ onBack }) => {
         >
           {[
             { id: 'tunnel', label: 'Cyber Tunnel', icon: Rocket },
-            { id: 'waves', label: 'Liquid Silk', icon: Waves },
             { id: 'orb', label: 'Neon Orb', icon: Zap },
           ].map(item => {
             const active = mode === item.id;

@@ -5,12 +5,18 @@ import { Play, Download, Trash2, MoreHorizontal } from 'lucide-react';
 import AddToPlaylistModal from './AddToPlaylistModal';
 
 const DownloadsView: React.FC = () => {
-  const { songs: allSongs, currentSong, isPlaying, playSong, togglePlayPause, downloadedSongs, deleteDownload } = usePlayer();
+  const { songs: allSongs, currentSong, isPlaying, playSong, togglePlayPause, downloadedSongs, downloadedSongList: ctxDownloadedList, deleteDownload } = usePlayer();
   const [modalSong, setModalSong] = useState<Song | null>(null);
 
   const downloadedSongList = useMemo(() => {
-    return allSongs.filter(song => downloadedSongs.has(song.id));
-  }, [allSongs, downloadedSongs]);
+    const list = [...(ctxDownloadedList || [])];
+    allSongs.forEach(song => {
+      if (downloadedSongs.has(song.id) && !list.some(s => s.id === song.id)) {
+        list.push(song);
+      }
+    });
+    return list;
+  }, [ctxDownloadedList, allSongs, downloadedSongs]);
 
   const handlePlay = (song: Song) => {
     if (currentSong?.id === song.id) togglePlayPause();

@@ -61,6 +61,7 @@ interface PlayerContextType {
   setPlaybackRate: (rate: number) => void;
   setPan: (panValue: number) => void;
   downloadedSongs: Set<string>;
+  downloadedSongList: Song[];
   downloadProgress: Record<string, number>;
   downloadSong: (song: Song) => Promise<void>;
   downloadAllSongs: (songs: Song[]) => Promise<void>;
@@ -106,12 +107,14 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   });
 
   const [downloadedSongs, setDownloadedSongs] = useState<Set<string>>(new Set());
+  const [downloadedSongList, setDownloadedSongList] = useState<Song[]>([]);
   const [downloadProgress, setDownloadProgress] = useState<Record<string, number>>({});
   const [uploadedSongs, setUploadedSongs] = useState<Song[]>([]);
 
   useEffect(() => {
     getAllDownloadedSongs().then(songs => {
       setDownloadedSongs(new Set(songs.map(s => s.songId)));
+      setDownloadedSongList(songs.map(s => s.songData).filter(Boolean));
     });
     getAllUploadedSongs().then(uploads => {
       setUploadedSongs(uploads.map(u => u.songData));
@@ -706,20 +709,10 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       
       await saveDownloadedSong(song, blob);
       setDownloadedSongs(prev => new Set(prev).add(song.id));
-
-      // Also trigger direct browser file download for the user's files folder
-      try {
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        const cleanTitle = (song.title || 'song').replace(/[/\\?%*:|"<>]/g, '');
-        const cleanArtist = (song.artist || 'artist').replace(/[/\\?%*:|"<>]/g, '');
-        a.download = `${cleanArtist} - ${cleanTitle}.m4a`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-      } catch (_) {}
+      setDownloadedSongList(prev => {
+        if (prev.some(s => s.id === song.id)) return prev;
+        return [...prev, song];
+      });
 
       setDownloadProgress(prev => {
         const next = { ...prev };
@@ -749,6 +742,7 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       next.delete(songId);
       return next;
     });
+    setDownloadedSongList(prev => prev.filter(s => s.id !== songId));
   };
 
   const uploadSong = async (song: Song, blob: Blob) => {
@@ -928,6 +922,7 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       setPlaybackRate,
       setPan,
       downloadedSongs,
+      downloadedSongList,
       downloadProgress,
       downloadSong,
       downloadAllSongs,
