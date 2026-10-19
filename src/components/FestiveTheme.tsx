@@ -105,17 +105,18 @@ const FestiveBanner: React.FC<{ theme: FestiveTheme; onClose: () => void }> = ({
         left: 0,
         right: 0,
         zIndex: 9999,
-        height: 32,
+        height: 34,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        background: `linear-gradient(135deg, ${theme.logoOverlay.borderGradient[0]}22, ${theme.logoOverlay.borderGradient[1] ?? theme.logoOverlay.borderGradient[0]}18)`,
-        borderBottom: `1px solid ${theme.logoOverlay.glowColor}33`,
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+        /* Solid dark strip with festival color accent — like Swiggy/Zomato offer bars */
+        background: `linear-gradient(90deg, #0d0d0d 0%, ${theme.logoOverlay.glowColor}28 50%, #0d0d0d 100%)`,
+        borderBottom: `1.5px solid ${theme.logoOverlay.glowColor}`,
+        boxShadow: `0 0 18px ${theme.logoOverlay.glowColor}44, 0 2px 8px rgba(0,0,0,0.8)`,
         transform: visible ? 'translateY(0)' : 'translateY(-100%)',
-        transition: 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+        transition: 'transform 0.45s cubic-bezier(0.34,1.56,0.64,1)',
+
       }}
     >
       {/* Glow line at bottom of banner */}
