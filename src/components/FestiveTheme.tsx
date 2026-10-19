@@ -1,271 +1,206 @@
 /**
- * 🎉 FestiveTheme Component
- * - Injects dynamic CSS variables for the active festival
- * - Renders beautiful floating particles (snow, diyas, hearts, etc.)
- * - Shows a subtle festive banner at the top of the app
- * - Provides a festive logo wrapper used in TuneTasticLogo
+ * FestiveTheme — Premium Edition
+ *
+ * Inspired by how Swiggy, Zomato & Google handle festive UI:
+ * - Subtle ambient bokeh lighting (tiny glowing CSS dots, not emoji)
+ * - Thin, elegant toast-style banner (not a garish full rainbow bar)
+ * - Soft CSS color palette shift on accent elements
+ * - Instagram-story-style logo ring (thin, slow pulse — no spinning)
+ * - Small static badge, no bouncing
  */
 
 import React, { useEffect, useRef, useState } from 'react';
-import { getCurrentFestiveTheme, type FestiveTheme, type ParticleConfig } from '../utils/festivals';
+import { getCurrentFestiveTheme, type FestiveTheme } from '../utils/festivals';
 
-// ──────────────────────────────────────────────────────────────────
-// CSS injection for festive themes
-// ──────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// CSS injection helpers
+// ─────────────────────────────────────────────────────────────────
 
 function injectFestiveCSS(theme: FestiveTheme) {
   const root = document.documentElement;
-  Object.entries(theme.cssVars).forEach(([key, value]) => {
-    root.style.setProperty(key, value);
-  });
-  if (theme.bodyClass) {
-    document.body.classList.add(theme.bodyClass);
-  }
+  Object.entries(theme.cssVars).forEach(([k, v]) => root.style.setProperty(k, v));
+  if (theme.bodyClass) document.body.classList.add(theme.bodyClass);
 }
-
 function removeFestiveCSS(theme: FestiveTheme) {
   const root = document.documentElement;
-  Object.keys(theme.cssVars).forEach((key) => {
-    root.style.removeProperty(key);
-  });
-  if (theme.bodyClass) {
-    document.body.classList.remove(theme.bodyClass);
-  }
+  Object.keys(theme.cssVars).forEach((k) => root.style.removeProperty(k));
+  if (theme.bodyClass) document.body.classList.remove(theme.bodyClass);
 }
 
-// ──────────────────────────────────────────────────────────────────
-// Particle System
-// ──────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// Ambient Bokeh — pure CSS circles, no emojis
+// ─────────────────────────────────────────────────────────────────
 
-interface Particle {
+interface BokehDot {
   id: number;
-  x: number;
-  y: number;
-  size: number;
+  x: number;    // vw
+  size: number; // px
   color: string;
-  type: ParticleConfig['type'];
-  vx: number;
-  vy: number;
-  rotation: number;
-  rotationSpeed: number;
-  opacity: number;
-  life: number; // 0 → 1
+  delay: number;
+  duration: number;
 }
 
-function createParticle(cfg: ParticleConfig, id: number): Particle {
-  const size = cfg.size[0] + Math.random() * (cfg.size[1] - cfg.size[0]);
-  const speed = cfg.speed[0] + Math.random() * (cfg.speed[1] - cfg.speed[0]);
-  const angle = Math.random() * Math.PI * 2;
-  return {
-    id,
-    x: Math.random() * 100, // vw %
-    y: cfg.type === 'firework' ? 100 + Math.random() * 10 : -10,
-    size,
-    color: cfg.colors[Math.floor(Math.random() * cfg.colors.length)],
-    type: cfg.type,
-    vx: cfg.type === 'holi-splash' ? (Math.random() - 0.5) * 2 : Math.cos(angle) * speed * 0.3,
-    vy: cfg.type === 'firework' ? -(speed * 1.2) : speed,
-    rotation: Math.random() * 360,
-    rotationSpeed: (Math.random() - 0.5) * 3,
-    opacity: 0.8 + Math.random() * 0.2,
-    life: 0,
-  };
+function generateBokeh(theme: FestiveTheme, count = 18): BokehDot[] {
+  const colors = theme.logoOverlay.borderGradient;
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    size: 3 + Math.random() * 5,
+    color: colors[i % colors.length],
+    delay: Math.random() * 8,
+    duration: 10 + Math.random() * 12,
+  }));
 }
 
-function ParticleRenderer({ particle }: { particle: Particle }) {
-  const style: React.CSSProperties = {
-    position: 'fixed',
-    left: `${particle.x}vw`,
-    top: `${particle.y}vh`,
-    width: particle.size,
-    height: particle.size,
-    opacity: particle.opacity,
-    pointerEvents: 'none',
-    zIndex: 9000,
-    transform: `rotate(${particle.rotation}deg)`,
-    transition: 'none',
-    filter: `drop-shadow(0 0 ${particle.size * 0.3}px ${particle.color})`,
-  };
-
-  const content = (() => {
-    switch (particle.type) {
-      case 'snowflake': return '❄';
-      case 'heart': return '♥';
-      case 'diya': return '🪔';
-      case 'firework': return '✦';
-      case 'leaf': return '🍃';
-      case 'petal': return '🌸';
-      case 'crescent': return '☽';
-      case 'egg': return '🥚';
-      case 'shamrock': return '☘';
-      case 'lantern': return '🏮';
-      case 'holi-splash': return '●';
-      case 'star':
-      default: return '★';
-    }
-  })();
+const AmbientBokeh: React.FC<{ theme: FestiveTheme }> = ({ theme }) => {
+  const dots = useRef(generateBokeh(theme)).current;
 
   return (
-    <div style={{ ...style, fontSize: particle.size, color: particle.color, lineHeight: 1 }}>
-      {content}
+    <div
+      style={{
+        position: 'fixed', inset: 0,
+        pointerEvents: 'none', zIndex: 8,
+        overflow: 'hidden',
+      }}
+    >
+      {dots.map((d) => (
+        <div
+          key={d.id}
+          style={{
+            position: 'absolute',
+            bottom: '-8px',
+            left: `${d.x}vw`,
+            width: d.size,
+            height: d.size,
+            borderRadius: '50%',
+            background: d.color,
+            opacity: 0,
+            boxShadow: `0 0 ${d.size * 2}px ${d.color}, 0 0 ${d.size * 4}px ${d.color}55`,
+            animation: `bokehRise ${d.duration}s ${d.delay}s ease-in infinite`,
+          }}
+        />
+      ))}
     </div>
   );
-}
+};
 
-// ──────────────────────────────────────────────────────────────────
-// Main FestiveTheme component
-// ──────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// Festive Banner — slim, elegant, toast-style (like Swiggy)
+// ─────────────────────────────────────────────────────────────────
+
+const FestiveBanner: React.FC<{ theme: FestiveTheme; onClose: () => void }> = ({ theme, onClose }) => {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    // Slide in after 600ms
+    const t = setTimeout(() => setVisible(true), 600);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 9999,
+        height: 32,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        background: `linear-gradient(135deg, ${theme.logoOverlay.borderGradient[0]}22, ${theme.logoOverlay.borderGradient[1] ?? theme.logoOverlay.borderGradient[0]}18)`,
+        borderBottom: `1px solid ${theme.logoOverlay.glowColor}33`,
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        transform: visible ? 'translateY(0)' : 'translateY(-100%)',
+        transition: 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+      }}
+    >
+      {/* Glow line at bottom of banner */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: 1,
+        background: `linear-gradient(90deg, transparent, ${theme.logoOverlay.glowColor}88, transparent)`,
+      }} />
+
+      <span style={{ fontSize: 14, lineHeight: 1 }}>{theme.emoji}</span>
+      <span style={{
+        color: theme.logoOverlay.glowColor,
+        fontWeight: 600,
+        fontSize: 12,
+        letterSpacing: 0.4,
+        opacity: 0.95,
+      }}>
+        {theme.name}
+      </span>
+      <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11 }}>
+        · {theme.message}
+      </span>
+
+      <button
+        onClick={onClose}
+        style={{
+          position: 'absolute', right: 10,
+          background: 'none', border: 'none',
+          color: 'rgba(255,255,255,0.4)',
+          cursor: 'pointer', fontSize: 16, lineHeight: 1,
+          padding: '0 4px',
+          transition: 'color 0.2s',
+        }}
+        aria-label="Dismiss"
+      >
+        ×
+      </button>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────
+// Main Provider
+// ─────────────────────────────────────────────────────────────────
 
 const FestiveThemeProvider: React.FC = () => {
   const theme = getCurrentFestiveTheme();
-  const [particles, setParticles] = useState<Particle[]>([]);
   const [showBanner, setShowBanner] = useState(true);
-  const frameRef = useRef<number>(0);
-  const particleIdRef = useRef(0);
-  const lastSpawnRef = useRef<number[]>([]);
 
-  // Inject/remove CSS variables on mount/unmount
   useEffect(() => {
     if (!theme) return;
     injectFestiveCSS(theme);
-    return () => {
-      removeFestiveCSS(theme);
-    };
-  }, [theme?.id]);
-
-  // Particle animation loop
-  useEffect(() => {
-    if (!theme || theme.particles.length === 0) return;
-
-    let lastTime = performance.now();
-    lastSpawnRef.current = theme.particles.map(() => 0);
-
-    const spawnIntervals = theme.particles.map((cfg) => {
-      // spawn one every N ms based on count
-      return 8000 / cfg.count;
-    });
-
-    const loop = (now: number) => {
-      const dt = (now - lastTime) / 1000;
-      lastTime = now;
-
-      setParticles((prev) => {
-        // Move existing
-        const moved = prev
-          .map((p) => {
-            const newLife = p.life + dt * 0.12;
-            if (newLife >= 1) return null;
-            return {
-              ...p,
-              x: p.x + p.vx * dt * 10,
-              y: p.y + p.vy * dt * 10,
-              rotation: p.rotation + p.rotationSpeed,
-              opacity: p.type === 'firework'
-                ? Math.max(0, 1 - newLife * 1.5)
-                : p.type === 'holi-splash'
-                  ? Math.max(0, 1 - newLife)
-                  : 0.7 + Math.sin(newLife * Math.PI) * 0.3,
-              life: newLife,
-            };
-          })
-          .filter(Boolean) as Particle[];
-
-        // Spawn new
-        const newParticles: Particle[] = [];
-        theme.particles.forEach((cfg, idx) => {
-          lastSpawnRef.current[idx] += dt * 1000;
-          if (lastSpawnRef.current[idx] >= spawnIntervals[idx]) {
-            lastSpawnRef.current[idx] = 0;
-            newParticles.push(createParticle(cfg, ++particleIdRef.current));
-          }
-        });
-
-        // Cap total particles
-        return [...moved, ...newParticles].slice(-80);
-      });
-
-      frameRef.current = requestAnimationFrame(loop);
-    };
-
-    frameRef.current = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(frameRef.current);
+    return () => removeFestiveCSS(theme);
   }, [theme?.id]);
 
   if (!theme) return null;
 
   return (
     <>
-      {/* Floating Particles */}
-      {particles.map((p) => (
-        <ParticleRenderer key={p.id} particle={p} />
-      ))}
+      {/* Ambient bokeh light dots */}
+      <AmbientBokeh theme={theme} />
 
-      {/* Festive Banner */}
+      {/* Slim festive banner */}
       {showBanner && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 9999,
-            background: `linear-gradient(90deg, ${theme.logoOverlay.borderGradient.join(', ')})`,
-            backgroundSize: '200% auto',
-            animation: 'festiveBannerShimmer 3s linear infinite',
-            padding: '6px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 12,
-            boxShadow: `0 0 20px ${theme.logoOverlay.glowColor}66`,
-          }}
-        >
-          <span style={{ fontSize: 18 }}>{theme.emoji}</span>
-          <span style={{ color: '#000', fontWeight: 700, fontSize: 13, letterSpacing: 0.3 }}>
-            {theme.name} &nbsp;—&nbsp; {theme.message}
-          </span>
-          <span style={{ fontSize: 18 }}>{theme.emoji}</span>
-          <button
-            onClick={() => setShowBanner(false)}
-            style={{
-              position: 'absolute',
-              right: 12,
-              background: 'rgba(0,0,0,0.2)',
-              border: 'none',
-              color: '#000',
-              borderRadius: '50%',
-              width: 20,
-              height: 20,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              fontSize: 12,
-              fontWeight: 700,
-            }}
-            aria-label="Close festive banner"
-          >
-            ×
-          </button>
-        </div>
+        <FestiveBanner theme={theme} onClose={() => setShowBanner(false)} />
       )}
 
-      {/* Keyframe injection */}
+      {/* Global keyframes + festival-active styles */}
       <style>{`
-        @keyframes festiveBannerShimmer {
-          0%   { background-position: 0% center; }
-          100% { background-position: 200% center; }
+        @keyframes bokehRise {
+          0%   { transform: translateY(0)   scale(1);    opacity: 0; }
+          10%  { opacity: 0.6; }
+          80%  { opacity: 0.3; }
+          100% { transform: translateY(-105vh) scale(0.6); opacity: 0; }
         }
 
-        /* Festive glow on interactive elements */
-        .festival-active button:hover,
-        .festival-active [class*="card"]:hover {
-          box-shadow: 0 0 12px var(--festive-accent, var(--spotify-green)) !important;
+        /* Subtle festive glow on accent/interactive elements */
+        body.festival-active [class*="now-playing"],
+        body.festival-active .player-bar {
+          box-shadow: inset 0 0 60px ${theme.logoOverlay.glowColor}08 !important;
         }
 
-        /* EQ bars take on festive color automatically via --spotify-green */
-        .festival-active .eq-bar {
+        /* Progress bar fills with festival accent color */
+        body.festival-active input[type=range]::-webkit-slider-thumb {
           background: var(--spotify-green) !important;
+          box-shadow: 0 0 6px ${theme.logoOverlay.glowColor}88 !important;
         }
       `}</style>
     </>
@@ -274,138 +209,82 @@ const FestiveThemeProvider: React.FC = () => {
 
 export default FestiveThemeProvider;
 
-// ──────────────────────────────────────────────────────────────────
-// Festive Logo Wrapper – used inside TuneTasticLogo
-// ──────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// Festive Logo Wrapper — Instagram story ring style
+// ─────────────────────────────────────────────────────────────────
 
 export const FestiveLogoWrapper: React.FC<{
   size: number;
   children: React.ReactNode;
 }> = ({ size, children }) => {
   const theme = getCurrentFestiveTheme();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const frameRef = useRef<number>(0);
-  const angleRef = useRef(0);
-
-  // Draw rotating festive ring on canvas
-  useEffect(() => {
-    if (!theme || theme.logoOverlay.type === 'none') return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const dpr = window.devicePixelRatio || 1;
-    const s = size * dpr;
-    canvas.width = s;
-    canvas.height = s;
-    canvas.style.width = size + 'px';
-    canvas.style.height = size + 'px';
-
-    const colors = theme.logoOverlay.borderGradient;
-    const badge = theme.logoOverlay.badge;
-    const badgeSize = (theme.logoOverlay.badgeSize ?? 1) * size * 0.28;
-
-    const draw = () => {
-      ctx.clearRect(0, 0, s, s);
-
-      const cx = s / 2;
-      const cy = s / 2;
-      const r = (size / 2 - 2) * dpr;
-
-      // Build a gradient for the ring
-      const grad = ctx.createConicGradient
-        ? ctx.createConicGradient(angleRef.current, cx, cy)
-        : (() => {
-            const g = ctx.createLinearGradient(0, 0, s, s);
-            colors.forEach((c, i) => g.addColorStop(i / (colors.length - 1), c));
-            return g;
-          })();
-
-      if ((grad as CanvasGradient).addColorStop) {
-        colors.forEach((c, i) => (grad as CanvasGradient).addColorStop(i / (colors.length - 1), c));
-      }
-
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.lineWidth = 3 * dpr;
-      ctx.strokeStyle = colors[Math.round(angleRef.current / (Math.PI * 2) * colors.length) % colors.length];
-      ctx.stroke();
-      ctx.restore();
-
-      // Badge emoji in bottom-right
-      ctx.save();
-      ctx.font = `${badgeSize}px serif`;
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'bottom';
-      ctx.shadowColor = theme.logoOverlay.glowColor;
-      ctx.shadowBlur = 8 * dpr;
-      ctx.fillText(badge, s - 2, s - 2);
-      ctx.restore();
-
-      angleRef.current = (angleRef.current + 0.01) % (Math.PI * 2);
-      frameRef.current = requestAnimationFrame(draw);
-    };
-
-    draw();
-    return () => cancelAnimationFrame(frameRef.current);
-  }, [theme?.id, size]);
 
   if (!theme) return <>{children}</>;
 
+  const ringColors = theme.logoOverlay.borderGradient;
+  const gradientStr = `conic-gradient(${ringColors.join(', ')}, ${ringColors[0]})`;
+  const ringThickness = Math.max(2, Math.round(size * 0.06)); // 6% of size
+  const gap = 2; // gap between ring and logo
+
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-      {/* Festive glow ring */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: -3,
-          borderRadius: '50%',
-          background: `conic-gradient(${theme.logoOverlay.borderGradient.join(', ')})`,
-          animation: 'festiveLogo-spin 4s linear infinite',
-          zIndex: 0,
-          opacity: 0.85,
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          inset: 2,
-          borderRadius: '50%',
-          background: '#000',
-          zIndex: 1,
-        }}
-      />
+      {/* Outer glow halo — very subtle, like story ring ambient */}
+      <div style={{
+        position: 'absolute',
+        inset: -(ringThickness + gap + 2),
+        borderRadius: '50%',
+        background: theme.logoOverlay.glowColor,
+        opacity: 0.12,
+        filter: 'blur(8px)',
+        animation: 'festRingPulse 3s ease-in-out infinite',
+      }} />
+
+      {/* Gradient ring (conic) */}
+      <div style={{
+        position: 'absolute',
+        inset: -ringThickness - gap,
+        borderRadius: '50%',
+        background: gradientStr,
+        animation: 'festRingPulse 3s ease-in-out infinite',
+      }} />
+
+      {/* White gap separator */}
+      <div style={{
+        position: 'absolute',
+        inset: -gap,
+        borderRadius: '50%',
+        background: '#111',
+        zIndex: 1,
+      }} />
+
       {/* Logo image */}
-      <div style={{ position: 'absolute', inset: 3, borderRadius: '50%', overflow: 'hidden', zIndex: 2 }}>
+      <div style={{
+        position: 'absolute', inset: 0,
+        borderRadius: '50%', overflow: 'hidden',
+        zIndex: 2,
+      }}>
         {children}
       </div>
-      {/* Badge overlay */}
+
+      {/* Small badge — static, bottom-right, small and tasteful */}
       {theme.logoOverlay.badge && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: -2,
-            right: -2,
-            fontSize: size * 0.28,
-            lineHeight: 1,
-            zIndex: 3,
-            filter: `drop-shadow(0 0 4px ${theme.logoOverlay.glowColor})`,
-            animation: 'festiveLogo-badge-bounce 1.5s ease-in-out infinite',
-          }}
-        >
+        <div style={{
+          position: 'absolute',
+          bottom: -ringThickness - gap + 1,
+          right: -ringThickness - gap + 1,
+          fontSize: Math.round(size * 0.32),
+          lineHeight: 1,
+          zIndex: 4,
+          filter: `drop-shadow(0 1px 3px rgba(0,0,0,0.7))`,
+        }}>
           {theme.logoOverlay.badge}
         </div>
       )}
+
       <style>{`
-        @keyframes festiveLogo-spin {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
-        }
-        @keyframes festiveLogo-badge-bounce {
-          0%, 100% { transform: scale(1) rotate(-10deg); }
-          50%      { transform: scale(1.2) rotate(10deg); }
+        @keyframes festRingPulse {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.75; }
         }
       `}</style>
     </div>

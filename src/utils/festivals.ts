@@ -10,8 +10,6 @@ export interface FestiveTheme {
   emoji: string;
   /** CSS variables to inject into :root */
   cssVars: Record<string, string>;
-  /** Festive particles / decorations rendered over the UI */
-  particles: ParticleConfig[];
   /** Canvas-based overlay drawn ON TOP of the logo image */
   logoOverlay: LogoOverlay;
   /** Optional body class for CSS-driven effects */
@@ -20,23 +18,15 @@ export interface FestiveTheme {
   message: string;
 }
 
-export interface ParticleConfig {
-  type: 'diya' | 'star' | 'snowflake' | 'heart' | 'holi-splash' | 'firework' | 'leaf' | 'petal' | 'crescent' | 'egg' | 'shamrock' | 'lantern';
-  count: number;
-  colors: string[];
-  size: [number, number]; // [min, max]
-  speed: [number, number];
-}
-
 export interface LogoOverlay {
-  type: 'none' | 'diwali' | 'christmas' | 'holi' | 'tricolor' | 'new-year' | 'eid' | 'halloween' | 'valentine' | 'independence' | 'pongal' | 'navratri' | 'onam' | 'durga-puja' | 'lohri' | 'raksha-bandhan' | 'baisakhi' | 'ganesh-chaturthi';
+  type: string;
   /** Glow color around logo ring */
   glowColor: string;
   /** Border gradient – two or more stops */
   borderGradient: string[];
-  /** Small emoji badge drawn in bottom-right corner */
+  /** Small emoji badge in bottom-right corner */
   badge: string;
-  /** Scale factor for badge */
+  /** Scale factor for badge (unused, kept for compat) */
   badgeSize?: number;
 }
 
@@ -83,10 +73,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#FFD700',
         '--festive-accent-2': '#ff6b6b',
       },
-      particles: [
-        { type: 'firework', count: 18, colors: ['#FFD700', '#ff4d4d', '#00e5ff', '#e040fb', '#76ff03'], size: [6, 14], speed: [1.5, 3.5] },
-        { type: 'star', count: 30, colors: ['#FFD700', '#ffffff'], size: [2, 5], speed: [0.3, 0.8] },
-      ],
       logoOverlay: {
         type: 'new-year',
         glowColor: '#FFD700',
@@ -114,10 +100,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#FF8F00',
         '--festive-accent-2': '#4CAF50',
       },
-      particles: [
-        { type: 'leaf', count: 20, colors: ['#4CAF50', '#8BC34A', '#FF8F00', '#FFCA28'], size: [6, 12], speed: [0.6, 1.2] },
-        { type: 'petal', count: 15, colors: ['#FF8F00', '#FFC107', '#FFEB3B'], size: [5, 10], speed: [0.4, 1.0] },
-      ],
       logoOverlay: {
         type: 'pongal',
         glowColor: '#FF8F00',
@@ -143,10 +125,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#FF9933',
         '--festive-accent-2': '#138808',
       },
-      particles: [
-        { type: 'petal', count: 25, colors: ['#FF9933', '#FFFFFF', '#138808'], size: [6, 12], speed: [0.5, 1.2] },
-        { type: 'star', count: 12, colors: ['#0000FF', '#FF9933'], size: [3, 7], speed: [0.3, 0.7] },
-      ],
       logoOverlay: {
         type: 'tricolor',
         glowColor: '#FF9933',
@@ -175,10 +153,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#e91e8c',
         '--festive-accent-2': '#ff6090',
       },
-      particles: [
-        { type: 'heart', count: 25, colors: ['#e91e8c', '#ff6090', '#ff4081', '#f8bbd0'], size: [8, 18], speed: [0.4, 1.2] },
-        { type: 'petal', count: 15, colors: ['#ff8fa3', '#f48fb1'], size: [4, 10], speed: [0.3, 0.8] },
-      ],
       logoOverlay: {
         type: 'valentine',
         glowColor: '#e91e8c',
@@ -207,10 +181,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#FF4081',
         '--festive-accent-2': '#7C4DFF',
       },
-      particles: [
-        { type: 'holi-splash', count: 30, colors: ['#FF4081', '#7C4DFF', '#00BCD4', '#FFEB3B', '#4CAF50', '#FF9800', '#E91E63'], size: [8, 20], speed: [1, 2.5] },
-        { type: 'petal', count: 20, colors: ['#FF4081', '#7C4DFF', '#00BCD4'], size: [5, 10], speed: [0.5, 1.2] },
-      ],
       logoOverlay: {
         type: 'holi',
         glowColor: '#FF4081',
@@ -237,9 +207,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#00C853',
         '--festive-accent-2': '#FFD600',
       },
-      particles: [
-        { type: 'shamrock', count: 20, colors: ['#00C853', '#69F0AE', '#FFD600'], size: [8, 16], speed: [0.4, 1.0] },
-      ],
       logoOverlay: {
         type: 'none',
         glowColor: '#00C853',
@@ -267,10 +234,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#FF6F00',
         '--festive-accent-2': '#4CAF50',
       },
-      particles: [
-        { type: 'petal', count: 25, colors: ['#FF6F00', '#FFC107', '#4CAF50'], size: [6, 14], speed: [0.5, 1.2] },
-        { type: 'leaf', count: 15, colors: ['#4CAF50', '#8BC34A'], size: [6, 12], speed: [0.4, 1.0] },
-      ],
       logoOverlay: {
         type: 'baisakhi',
         glowColor: '#FF6F00',
@@ -298,10 +261,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#FF9933',
         '--festive-accent-2': '#138808',
       },
-      particles: [
-        { type: 'petal', count: 30, colors: ['#FF9933', '#FFFFFF', '#138808'], size: [6, 14], speed: [0.5, 1.5] },
-        { type: 'star', count: 12, colors: ['#0000FF', '#FF9933', '#138808'], size: [3, 8], speed: [0.3, 0.8] },
-      ],
       logoOverlay: {
         type: 'tricolor',
         glowColor: '#FF9933',
@@ -328,10 +287,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#E91E63',
         '--festive-accent-2': '#FFD600',
       },
-      particles: [
-        { type: 'petal', count: 25, colors: ['#E91E63', '#FFD600', '#FF9800', '#F48FB1'], size: [5, 12], speed: [0.4, 1.0] },
-        { type: 'heart', count: 10, colors: ['#E91E63', '#F48FB1'], size: [6, 12], speed: [0.3, 0.8] },
-      ],
       logoOverlay: {
         type: 'raksha-bandhan',
         glowColor: '#E91E63',
@@ -359,10 +314,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#FF6F00',
         '--festive-accent-2': '#FFD600',
       },
-      particles: [
-        { type: 'petal', count: 25, colors: ['#FF6F00', '#FFD600', '#FF9800', '#FF5722'], size: [6, 14], speed: [0.4, 1.2] },
-        { type: 'star', count: 15, colors: ['#FFD600', '#FF6F00'], size: [3, 8], speed: [0.3, 0.8] },
-      ],
       logoOverlay: {
         type: 'ganesh-chaturthi',
         glowColor: '#FF6F00',
@@ -390,10 +341,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#E91E63',
         '--festive-accent-2': '#FF6F00',
       },
-      particles: [
-        { type: 'petal', count: 30, colors: ['#E91E63', '#FF6F00', '#FF4081', '#FFD600', '#E91E63'], size: [5, 14], speed: [0.5, 1.3] },
-        { type: 'star', count: 12, colors: ['#FFD600', '#E91E63'], size: [3, 8], speed: [0.3, 0.8] },
-      ],
       logoOverlay: {
         type: 'navratri',
         glowColor: '#E91E63',
@@ -420,10 +367,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#FF5722',
         '--festive-accent-2': '#FFD600',
       },
-      particles: [
-        { type: 'petal', count: 25, colors: ['#FF5722', '#FFD600', '#FF9800'], size: [6, 14], speed: [0.5, 1.2] },
-        { type: 'star', count: 12, colors: ['#FFD600', '#FF5722'], size: [3, 7], speed: [0.3, 0.8] },
-      ],
       logoOverlay: {
         type: 'none',
         glowColor: '#FF5722',
@@ -449,11 +392,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#FFB300',
         '--festive-accent-2': '#E91E63',
       },
-      particles: [
-        { type: 'diya', count: 18, colors: ['#FFB300', '#FF6D00', '#E91E63', '#FF5722'], size: [12, 22], speed: [0.3, 0.9] },
-        { type: 'firework', count: 14, colors: ['#FFD700', '#FF6D00', '#E91E63', '#FFEB3B', '#fff'], size: [5, 14], speed: [1.5, 3.5] },
-        { type: 'star', count: 30, colors: ['#FFB300', '#FFD700', '#ffffff', '#FFF9C4'], size: [2, 6], speed: [0.2, 0.7] },
-      ],
       logoOverlay: {
         type: 'diwali',
         glowColor: '#FFB300',
@@ -481,10 +419,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#FF6D00',
         '--festive-accent-2': '#7B1FA2',
       },
-      particles: [
-        { type: 'star', count: 20, colors: ['#FF6D00', '#7B1FA2', '#FFF176'], size: [3, 8], speed: [0.3, 0.9] },
-        { type: 'leaf', count: 15, colors: ['#FF6D00', '#8B4513', '#5D4037'], size: [6, 14], speed: [0.5, 1.2] },
-      ],
       logoOverlay: {
         type: 'halloween',
         glowColor: '#FF6D00',
@@ -514,11 +448,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#FFB300',
         '--festive-accent-2': '#E91E63',
       },
-      particles: [
-        { type: 'diya', count: 16, colors: ['#FFB300', '#FF6D00', '#E91E63', '#FF5722'], size: [10, 20], speed: [0.3, 0.8] },
-        { type: 'firework', count: 10, colors: ['#FFD700', '#FF6D00', '#E91E63', '#FFEB3B'], size: [5, 12], speed: [1.5, 3.0] },
-        { type: 'star', count: 25, colors: ['#FFB300', '#FFD700', '#ffffff'], size: [2, 5], speed: [0.2, 0.6] },
-      ],
       logoOverlay: {
         type: 'diwali',
         glowColor: '#FFB300',
@@ -548,10 +477,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#00C853',
         '--festive-accent-2': '#E53935',
       },
-      particles: [
-        { type: 'snowflake', count: 30, colors: ['#ffffff', '#e0f7fa', '#b2ebf2'], size: [4, 12], speed: [0.3, 1.0] },
-        { type: 'star', count: 15, colors: ['#FFD700', '#ffffff'], size: [3, 8], speed: [0.2, 0.6] },
-      ],
       logoOverlay: {
         type: 'christmas',
         glowColor: '#00C853',
@@ -579,10 +504,6 @@ const FESTIVALS: FestivalEntry[] = [
         '--festive-accent': '#FFD700',
         '--festive-accent-2': '#ff6b6b',
       },
-      particles: [
-        { type: 'firework', count: 20, colors: ['#FFD700', '#ff4d4d', '#00e5ff', '#e040fb', '#76ff03'], size: [6, 14], speed: [1.5, 3.5] },
-        { type: 'star', count: 30, colors: ['#FFD700', '#ffffff'], size: [2, 5], speed: [0.3, 0.8] },
-      ],
       logoOverlay: {
         type: 'new-year',
         glowColor: '#FFD700',
