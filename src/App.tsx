@@ -14,6 +14,8 @@ import NebulaBackground from './components/NebulaBackground';
 import DownloadsView from './components/DownloadsView';
 import UploadsView from './components/UploadsView';
 import CreatePlaylistModal from './components/CreatePlaylistModal';
+import FestiveThemeProvider from './components/FestiveTheme';
+import { getCurrentFestiveTheme } from './utils/festivals';
 
 const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'home' | 'search' | 'premium' | 'library' | 'playlist' | 'dj' | 'downloads' | 'uploads'>('home');
@@ -31,6 +33,17 @@ const AppContent: React.FC = () => {
     }
   }, [djState.nebulaMode]);
 
+  // Apply festival-active class so CSS can target it
+  useEffect(() => {
+    const festive = getCurrentFestiveTheme();
+    if (festive) {
+      document.body.classList.add('festival-active');
+    } else {
+      document.body.classList.remove('festival-active');
+    }
+    return () => document.body.classList.remove('festival-active');
+  }, []);
+
   const navigateToPlaylist = (id: string) => {
     setActivePlaylistId(id);
     setActiveTab('playlist');
@@ -39,6 +52,7 @@ const AppContent: React.FC = () => {
   return (
     <>
       <NebulaBackground />
+      <FestiveThemeProvider />
       <div className="app-container" style={{ position: 'relative', zIndex: 10 }}>
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onOpenPlaylist={navigateToPlaylist} />
         

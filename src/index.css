@@ -17,7 +17,49 @@
 
   /* Dynamic accent - changes based on current song's album art */
   --dynamic-bg-color: #1e3a29;
+
+  /* Festive accent colors (overridden by festivals.ts) */
+  --festive-accent: #1db954;
+  --festive-accent-2: #1db954;
 }
+
+/* When a festival is active, push app content down to make room for banner */
+body.festival-active .app-container {
+  margin-top: 34px;
+  height: calc(100vh - 34px);
+}
+
+/* Festive particle layering */
+body.festival-active .nebula-canvas {
+  z-index: 1 !important;
+}
+
+/* Festival-specific body styles */
+body.festival-diwali {
+  background-color: #0d0800 !important;
+}
+body.festival-christmas {
+  background-color: #001a08 !important;
+}
+body.festival-holi {
+  background-color: #0d0010 !important;
+}
+body.festival-valentine {
+  background-color: #1a0510 !important;
+}
+body.festival-navratri {
+  background-color: #1a0010 !important;
+}
+body.festival-halloween {
+  background-color: #0d0010 !important;
+}
+body.festival-new-year {
+  background-color: #0a0a1a !important;
+}
+body.festival-tricolor {
+  background-color: #07160a !important;
+}
+
 
 * {
   box-sizing: border-box;
