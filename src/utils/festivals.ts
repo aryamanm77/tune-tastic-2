@@ -375,7 +375,7 @@ const FESTIVALS: FestivalEntry[] = [
   // ──────────────────────────── OCTOBER ────────────────────────────
 
   {
-    check: (m, d) => m === 10 && d >= 2 && d <= 5, // Navratri / Durga Puja (approx. Oct 2–12)
+    check: (m, d) => m === 10 && d >= 2 && d <= 11, // Navratri 2026: Oct 2–11
     theme: {
       id: 'navratri',
       name: 'Navratri 💃',
@@ -405,7 +405,7 @@ const FESTIVALS: FestivalEntry[] = [
   },
 
   {
-    check: (m, d) => m === 10 && d >= 20 && d <= 22, // Dussehra
+    check: (m, d) => m === 10 && d >= 12 && d <= 14, // Dussehra 2026: Oct 12
     theme: {
       id: 'dussehra',
       name: 'Happy Dussehra! 🏹',
@@ -434,7 +434,39 @@ const FESTIVALS: FestivalEntry[] = [
   },
 
   {
-    check: (m, d) => m === 10 && d >= 31 && d <= 31, // Halloween
+    check: (m, d) => m === 10 && d >= 15 && d <= 27, // Pre-Diwali excitement: Oct 15–27 (covers today Oct 19 + Diwali week)
+    theme: {
+      id: 'diwali-week',
+      name: '🪔 Diwali is Here! Happy Diwali!',
+      emoji: '🪔',
+      message: 'May your life be filled with the divine light of Diwali! 🌟',
+      cssVars: {
+        '--spotify-green': '#FFB300',
+        '--spotify-green-hover': '#FFD54F',
+        '--bg-base': '#0d0800',
+        '--bg-elevated': '#1a1200',
+        '--bg-card': '#120d00',
+        '--festive-accent': '#FFB300',
+        '--festive-accent-2': '#E91E63',
+      },
+      particles: [
+        { type: 'diya', count: 18, colors: ['#FFB300', '#FF6D00', '#E91E63', '#FF5722'], size: [12, 22], speed: [0.3, 0.9] },
+        { type: 'firework', count: 14, colors: ['#FFD700', '#FF6D00', '#E91E63', '#FFEB3B', '#fff'], size: [5, 14], speed: [1.5, 3.5] },
+        { type: 'star', count: 30, colors: ['#FFB300', '#FFD700', '#ffffff', '#FFF9C4'], size: [2, 6], speed: [0.2, 0.7] },
+      ],
+      logoOverlay: {
+        type: 'diwali',
+        glowColor: '#FFB300',
+        borderGradient: ['#FFB300', '#FF6D00', '#E91E63', '#FFD700', '#FFB300'],
+        badge: '🪔',
+        badgeSize: 1.2,
+      },
+      bodyClass: 'festival-diwali',
+    },
+  },
+
+  {
+    check: (m, d) => m === 10 && d >= 28, // Halloween eve on Oct 28-30
     theme: {
       id: 'halloween',
       name: 'Halloween 🎃',
@@ -467,7 +499,7 @@ const FESTIVALS: FestivalEntry[] = [
   // ──────────────────────────── NOVEMBER ────────────────────────────
 
   {
-    check: (m, d) => (m === 10 && d >= 28) || (m === 11 && d <= 5), // Diwali (varies – using approx. Oct 28 – Nov 5)
+    check: (m, d) => (m === 10 && d >= 28) || (m === 11 && d <= 5), // Diwali extends into Nov (if any late celebrations)
     theme: {
       id: 'diwali',
       name: 'Happy Diwali! 🪔',
@@ -567,23 +599,29 @@ const FESTIVALS: FestivalEntry[] = [
 // Public API
 // ------------------------------------------------------------------
 
-let _cachedTheme: FestiveTheme | null | undefined = undefined;
+// Cache per day-of-year so we don't recalculate on every render,
+// but DO recalculate if the date changes (midnight rollover / deploy).
+let _cacheKey = '';
+let _cachedTheme: FestiveTheme | null = null;
 
 export function getCurrentFestiveTheme(): FestiveTheme | null {
-  if (_cachedTheme !== undefined) return _cachedTheme;
-
   const { month, day } = today();
+  const key = `${month}-${day}`;
+  if (key === _cacheKey) return _cachedTheme;
+
+  _cacheKey = key;
+  _cachedTheme = null;
   for (const entry of FESTIVALS) {
     if (entry.check(month, day)) {
       _cachedTheme = entry.theme;
-      return _cachedTheme;
+      break;
     }
   }
-  _cachedTheme = null;
-  return null;
+  return _cachedTheme;
 }
 
-/** Clear cache (useful for testing / time-travel) */
+/** Clear cache (useful for testing) */
 export function clearFestiveCache() {
-  _cachedTheme = undefined;
+  _cacheKey = '';
+  _cachedTheme = null;
 }

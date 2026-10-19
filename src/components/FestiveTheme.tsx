@@ -81,7 +81,7 @@ function ParticleRenderer({ particle }: { particle: Particle }) {
     height: particle.size,
     opacity: particle.opacity,
     pointerEvents: 'none',
-    zIndex: 5,
+    zIndex: 9000,
     transform: `rotate(${particle.rotation}deg)`,
     transition: 'none',
     filter: `drop-shadow(0 0 ${particle.size * 0.3}px ${particle.color})`,
