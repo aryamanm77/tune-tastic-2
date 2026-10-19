@@ -1,19 +1,16 @@
 /**
- * FestiveTheme — Premium Edition
- *
- * Inspired by how Swiggy, Zomato & Google handle festive UI:
- * - Subtle ambient bokeh lighting (tiny glowing CSS dots, not emoji)
- * - Thin, elegant toast-style banner (not a garish full rainbow bar)
- * - Soft CSS color palette shift on accent elements
- * - Instagram-story-style logo ring (thin, slow pulse — no spinning)
- * - Small static badge, no bouncing
+ * FestiveTheme — Premium, Real-App Style
+ * - Subtle ambient bokeh lighting (tiny CSS dots, not emoji)
+ * - Clear, always-visible top bar (like Swiggy's coloured announcement strip)
+ * - Soft CSS colour palette shift on accent elements
+ * - Instagram-story-style logo ring
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { getCurrentFestiveTheme, type FestiveTheme } from '../utils/festivals';
 
 // ─────────────────────────────────────────────────────────────────
-// CSS injection helpers
+// CSS variable injection
 // ─────────────────────────────────────────────────────────────────
 
 function injectFestiveCSS(theme: FestiveTheme) {
@@ -28,131 +25,99 @@ function removeFestiveCSS(theme: FestiveTheme) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Ambient Bokeh — pure CSS circles, no emojis
+// Ambient Bokeh — pure CSS glowing dots floating upward
 // ─────────────────────────────────────────────────────────────────
 
-interface BokehDot {
-  id: number;
-  x: number;    // vw
-  size: number; // px
-  color: string;
-  delay: number;
-  duration: number;
-}
+interface BokehDot { id: number; x: number; size: number; color: string; delay: number; dur: number; }
 
-function generateBokeh(theme: FestiveTheme, count = 18): BokehDot[] {
+function makeBokeh(theme: FestiveTheme): BokehDot[] {
   const colors = theme.logoOverlay.borderGradient;
-  return Array.from({ length: count }, (_, i) => ({
+  return Array.from({ length: 20 }, (_, i) => ({
     id: i,
-    x: Math.random() * 100,
-    size: 3 + Math.random() * 5,
+    x: (i * 5.1 + Math.sin(i) * 12 + 100) % 100,
+    size: 3 + (i % 4),
     color: colors[i % colors.length],
-    delay: Math.random() * 8,
-    duration: 10 + Math.random() * 12,
+    delay: (i * 0.7) % 9,
+    dur: 11 + (i % 7),
   }));
 }
 
 const AmbientBokeh: React.FC<{ theme: FestiveTheme }> = ({ theme }) => {
-  const dots = useRef(generateBokeh(theme)).current;
-
+  const dots = useRef(makeBokeh(theme)).current;
   return (
-    <div
-      style={{
-        position: 'fixed', inset: 0,
-        pointerEvents: 'none', zIndex: 8,
-        overflow: 'hidden',
-      }}
-    >
-      {dots.map((d) => (
+    <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 8, overflow: 'hidden' }}>
+      {dots.map(d => (
         <div
           key={d.id}
           style={{
             position: 'absolute',
-            bottom: '-8px',
-            left: `${d.x}vw`,
+            bottom: 0,
+            left: `${d.x}%`,
             width: d.size,
             height: d.size,
             borderRadius: '50%',
             background: d.color,
             opacity: 0,
-            boxShadow: `0 0 ${d.size * 2}px ${d.color}, 0 0 ${d.size * 4}px ${d.color}55`,
-            animation: `bokehRise ${d.duration}s ${d.delay}s ease-in infinite`,
+            boxShadow: `0 0 ${d.size * 3}px ${d.color}`,
+            animation: `bokehUp ${d.dur}s ${d.delay}s ease-in infinite`,
           }}
         />
       ))}
+      <style>{`
+        @keyframes bokehUp {
+          0%   { transform: translateY(0);       opacity: 0;   }
+          8%   {                                  opacity: 0.7; }
+          85%  {                                  opacity: 0.25;}
+          100% { transform: translateY(-102vh);   opacity: 0;   }
+        }
+      `}</style>
     </div>
   );
 };
 
 // ─────────────────────────────────────────────────────────────────
-// Festive Banner — slim, elegant, toast-style (like Swiggy)
+// Festive Top Bar — always visible, no animation delay
+// Designed like Swiggy / Zomato's top offer bar
 // ─────────────────────────────────────────────────────────────────
 
-const FestiveBanner: React.FC<{ theme: FestiveTheme; onClose: () => void }> = ({ theme, onClose }) => {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    // Slide in after 600ms
-    const t = setTimeout(() => setVisible(true), 600);
-    return () => clearTimeout(t);
-  }, []);
+const FestiveBar: React.FC<{ theme: FestiveTheme }> = ({ theme }) => {
+  const g = theme.logoOverlay.glowColor;
 
   return (
     <div
+      id="festive-bar"
       style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 9999,
-        height: 34,
+        top: 0, left: 0, right: 0,
+        height: 36,
+        zIndex: 99999,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 8,
-        /* Solid dark strip with festival color accent — like Swiggy/Zomato offer bars */
-        background: `linear-gradient(90deg, #0d0d0d 0%, ${theme.logoOverlay.glowColor}28 50%, #0d0d0d 100%)`,
-        borderBottom: `1.5px solid ${theme.logoOverlay.glowColor}`,
-        boxShadow: `0 0 18px ${theme.logoOverlay.glowColor}44, 0 2px 8px rgba(0,0,0,0.8)`,
-        transform: visible ? 'translateY(0)' : 'translateY(-100%)',
-        transition: 'transform 0.45s cubic-bezier(0.34,1.56,0.64,1)',
-
+        gap: 10,
+        /* Rich solid background — very clearly visible */
+        background: `linear-gradient(90deg, #1a1200 0%, ${g}40 40%, ${g}40 60%, #1a1200 100%)`,
+        borderBottom: `2px solid ${g}`,
+        boxShadow: `0 1px 20px ${g}60`,
       }}
     >
-      {/* Glow line at bottom of banner */}
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, height: 1,
-        background: `linear-gradient(90deg, transparent, ${theme.logoOverlay.glowColor}88, transparent)`,
-      }} />
+      <span style={{ fontSize: 16 }}>{theme.emoji}</span>
 
-      <span style={{ fontSize: 14, lineHeight: 1 }}>{theme.emoji}</span>
       <span style={{
-        color: theme.logoOverlay.glowColor,
-        fontWeight: 600,
-        fontSize: 12,
-        letterSpacing: 0.4,
-        opacity: 0.95,
+        color: g,
+        fontWeight: 700,
+        fontSize: 13,
+        letterSpacing: 0.3,
+        textShadow: `0 0 12px ${g}`,
       }}>
         {theme.name}
       </span>
-      <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11 }}>
-        · {theme.message}
+
+      <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>
+        — {theme.message}
       </span>
 
-      <button
-        onClick={onClose}
-        style={{
-          position: 'absolute', right: 10,
-          background: 'none', border: 'none',
-          color: 'rgba(255,255,255,0.4)',
-          cursor: 'pointer', fontSize: 16, lineHeight: 1,
-          padding: '0 4px',
-          transition: 'color 0.2s',
-        }}
-        aria-label="Dismiss"
-      >
-        ×
-      </button>
+      <span style={{ fontSize: 16 }}>{theme.emoji}</span>
     </div>
   );
 };
@@ -163,7 +128,6 @@ const FestiveBanner: React.FC<{ theme: FestiveTheme; onClose: () => void }> = ({
 
 const FestiveThemeProvider: React.FC = () => {
   const theme = getCurrentFestiveTheme();
-  const [showBanner, setShowBanner] = useState(true);
 
   useEffect(() => {
     if (!theme) return;
@@ -175,33 +139,11 @@ const FestiveThemeProvider: React.FC = () => {
 
   return (
     <>
-      {/* Ambient bokeh light dots */}
       <AmbientBokeh theme={theme} />
-
-      {/* Slim festive banner */}
-      {showBanner && (
-        <FestiveBanner theme={theme} onClose={() => setShowBanner(false)} />
-      )}
-
-      {/* Global keyframes + festival-active styles */}
+      <FestiveBar theme={theme} />
       <style>{`
-        @keyframes bokehRise {
-          0%   { transform: translateY(0)   scale(1);    opacity: 0; }
-          10%  { opacity: 0.6; }
-          80%  { opacity: 0.3; }
-          100% { transform: translateY(-105vh) scale(0.6); opacity: 0; }
-        }
-
-        /* Subtle festive glow on accent/interactive elements */
-        body.festival-active [class*="now-playing"],
-        body.festival-active .player-bar {
-          box-shadow: inset 0 0 60px ${theme.logoOverlay.glowColor}08 !important;
-        }
-
-        /* Progress bar fills with festival accent color */
         body.festival-active input[type=range]::-webkit-slider-thumb {
-          background: var(--spotify-green) !important;
-          box-shadow: 0 0 6px ${theme.logoOverlay.glowColor}88 !important;
+          box-shadow: 0 0 6px ${theme.logoOverlay.glowColor}99 !important;
         }
       `}</style>
     </>
@@ -211,81 +153,61 @@ const FestiveThemeProvider: React.FC = () => {
 export default FestiveThemeProvider;
 
 // ─────────────────────────────────────────────────────────────────
-// Festive Logo Wrapper — Instagram story ring style
+// Festive Logo Wrapper — Instagram story-ring style
 // ─────────────────────────────────────────────────────────────────
 
-export const FestiveLogoWrapper: React.FC<{
-  size: number;
-  children: React.ReactNode;
-}> = ({ size, children }) => {
+export const FestiveLogoWrapper: React.FC<{ size: number; children: React.ReactNode }> = ({ size, children }) => {
   const theme = getCurrentFestiveTheme();
-
   if (!theme) return <>{children}</>;
 
-  const ringColors = theme.logoOverlay.borderGradient;
-  const gradientStr = `conic-gradient(${ringColors.join(', ')}, ${ringColors[0]})`;
-  const ringThickness = Math.max(2, Math.round(size * 0.06)); // 6% of size
-  const gap = 2; // gap between ring and logo
+  const colors = theme.logoOverlay.borderGradient;
+  const thick = Math.max(2, Math.round(size * 0.07));
+  const gap = 2;
 
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-      {/* Outer glow halo — very subtle, like story ring ambient */}
+      {/* Soft ambient glow */}
       <div style={{
         position: 'absolute',
-        inset: -(ringThickness + gap + 2),
+        inset: -(thick + gap + 3),
         borderRadius: '50%',
         background: theme.logoOverlay.glowColor,
-        opacity: 0.12,
-        filter: 'blur(8px)',
-        animation: 'festRingPulse 3s ease-in-out infinite',
+        opacity: 0.15,
+        filter: 'blur(10px)',
+        animation: 'festPulse 3s ease-in-out infinite',
       }} />
-
-      {/* Gradient ring (conic) */}
+      {/* Gradient ring */}
       <div style={{
         position: 'absolute',
-        inset: -ringThickness - gap,
+        inset: -(thick + gap),
         borderRadius: '50%',
-        background: gradientStr,
-        animation: 'festRingPulse 3s ease-in-out infinite',
+        background: `conic-gradient(${[...colors, colors[0]].join(', ')})`,
+        animation: 'festPulse 3s ease-in-out infinite',
       }} />
-
-      {/* White gap separator */}
-      <div style={{
-        position: 'absolute',
-        inset: -gap,
-        borderRadius: '50%',
-        background: '#111',
-        zIndex: 1,
-      }} />
-
-      {/* Logo image */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        borderRadius: '50%', overflow: 'hidden',
-        zIndex: 2,
-      }}>
+      {/* Gap */}
+      <div style={{ position: 'absolute', inset: -gap, borderRadius: '50%', background: '#111', zIndex: 1 }} />
+      {/* Logo */}
+      <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', overflow: 'hidden', zIndex: 2 }}>
         {children}
       </div>
-
-      {/* Small badge — static, bottom-right, small and tasteful */}
+      {/* Badge */}
       {theme.logoOverlay.badge && (
         <div style={{
           position: 'absolute',
-          bottom: -ringThickness - gap + 1,
-          right: -ringThickness - gap + 1,
-          fontSize: Math.round(size * 0.32),
+          bottom: -(thick + gap - 2),
+          right: -(thick + gap - 2),
+          fontSize: Math.round(size * 0.3),
           lineHeight: 1,
           zIndex: 4,
-          filter: `drop-shadow(0 1px 3px rgba(0,0,0,0.7))`,
+          filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.8))',
         }}>
           {theme.logoOverlay.badge}
         </div>
       )}
-
       <style>{`
-        @keyframes festRingPulse {
+        @keyframes festPulse {
           0%, 100% { opacity: 1; }
-          50%       { opacity: 0.75; }
+          50%       { opacity: 0.7; }
         }
       `}</style>
     </div>
