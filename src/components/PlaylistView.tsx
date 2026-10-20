@@ -89,21 +89,29 @@ const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId, goHome }) => {
   };
 
   const handleShare = async () => {
-    // Encode playlist: name + song IDs (songs are from the app's own library so IDs are enough)
+    // Include full song metadata so recipient can see songs even if not in their library
     const payload = {
       n: title,
-      ids: songs.map((s: Song) => s.id),
+      songs: songs.map((s: Song) => ({
+        id: s.id,
+        title: s.title,
+        artist: s.artist,
+        album: s.album,
+        durationMs: s.durationMs,
+        audioId: s.audioId,
+        coverArt: s.coverArt,
+      })),
     };
-    const encoded = btoa(encodeURIComponent(JSON.stringify(payload)));
+    // encodeURIComponent handles Unicode/emoji safely (btoa breaks on them)
+    const encoded = encodeURIComponent(JSON.stringify(payload));
     const shareUrl = `${window.location.origin}/?playlist=${encoded}`;
 
     const shareData = {
       title: `🎵 ${title} — TuneTastic`,
-      text: `Check out this playlist "${title}" with ${songs.length} songs on TuneTastic!`,
+      text: `Check out "${title}" — ${songs.length} songs on TuneTastic!`,
       url: shareUrl,
     };
 
-    // Use native share sheet on mobile (WhatsApp, Instagram etc.)
     if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
       try {
         await navigator.share(shareData);
@@ -111,12 +119,10 @@ const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId, goHome }) => {
         setTimeout(() => setShareToast('idle'), 2500);
         return;
       } catch (e) {
-        // user cancelled — do nothing
         if ((e as Error).name === 'AbortError') return;
       }
     }
 
-    // Fallback: copy link to clipboard
     try {
       await navigator.clipboard.writeText(shareUrl);
       setShareToast('copied');
@@ -125,6 +131,7 @@ const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId, goHome }) => {
       prompt('Copy this link to share:', shareUrl);
     }
   };
+
 
   return (
     <div className="main-view" style={{ background: 'transparent' }}>

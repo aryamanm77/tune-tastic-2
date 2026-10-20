@@ -21,7 +21,7 @@ const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'home' | 'search' | 'premium' | 'library' | 'playlist' | 'dj' | 'downloads' | 'uploads'>('home');
   const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null);
   const [creatingPlaylist, setCreatingPlaylist] = useState<boolean>(false);
-  const { djState, songs: allSongs, createPlaylist, addToPlaylist } = usePlayer() as any;
+  const { djState, songs: allSongs, setPlaylists } = usePlayer() as any;
 
   // ─── Auto-import shared playlist from URL param ───────────────────
   useEffect(() => {
@@ -30,31 +30,33 @@ const AppContent: React.FC = () => {
     if (!encoded || !allSongs?.length) return;
 
     try {
-      const payload = JSON.parse(decodeURIComponent(atob(encoded)));
-      const { n: name, ids } = payload as { n: string; ids: string[] };
-      if (!name || !Array.isArray(ids) || ids.length === 0) return;
+      const payload = JSON.parse(decodeURIComponent(encoded));
+      const { n: name, songs: sharedSongs } = payload as { n: string; songs: any[] };
+      if (!name || !Array.isArray(sharedSongs) || sharedSongs.length === 0) return;
 
-      // Match IDs to app's song library
-      const matched = ids
-        .map((id: string) => allSongs.find((s: any) => s.id === id))
-        .filter(Boolean);
+      // Prefer library version (full audio), fall back to shared metadata
+      const resolvedSongs = sharedSongs.map((shared: any) => {
+        const libSong = allSongs.find((s: any) => s.id === shared.id);
+        return libSong ?? shared;
+      });
 
-      if (matched.length === 0) return;
+      // Single atomic update — avoids race condition of createPlaylist + addToPlaylist
+      const newId = `shared-${Date.now()}`;
+      setPlaylists((prev: any[]) => [
+        ...prev,
+        { id: newId, name: `${name} (shared)`, songs: resolvedSongs },
+      ]);
 
-      // Create the playlist and populate it
-      const playlist = createPlaylist(`${name} (shared)`);
-      matched.forEach((song: any) => addToPlaylist(playlist.id, song));
-
-      // Navigate to it
-      setActivePlaylistId(playlist.id);
+      setActivePlaylistId(newId);
       setActiveTab('playlist');
 
       // Clean URL
       window.history.replaceState({}, '', window.location.pathname);
     } catch {
-      // Malformed URL param — ignore silently
+      // Malformed param — ignore
     }
   }, [allSongs]);
+
 
 
   useEffect(() => {
