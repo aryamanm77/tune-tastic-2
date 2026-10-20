@@ -21,7 +21,41 @@ const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'home' | 'search' | 'premium' | 'library' | 'playlist' | 'dj' | 'downloads' | 'uploads'>('home');
   const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null);
   const [creatingPlaylist, setCreatingPlaylist] = useState<boolean>(false);
-  const { djState } = usePlayer();
+  const { djState, songs: allSongs, createPlaylist, addToPlaylist } = usePlayer() as any;
+
+  // ─── Auto-import shared playlist from URL param ───────────────────
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const encoded = params.get('playlist');
+    if (!encoded || !allSongs?.length) return;
+
+    try {
+      const payload = JSON.parse(decodeURIComponent(atob(encoded)));
+      const { n: name, ids } = payload as { n: string; ids: string[] };
+      if (!name || !Array.isArray(ids) || ids.length === 0) return;
+
+      // Match IDs to app's song library
+      const matched = ids
+        .map((id: string) => allSongs.find((s: any) => s.id === id))
+        .filter(Boolean);
+
+      if (matched.length === 0) return;
+
+      // Create the playlist and populate it
+      const playlist = createPlaylist(`${name} (shared)`);
+      matched.forEach((song: any) => addToPlaylist(playlist.id, song));
+
+      // Navigate to it
+      setActivePlaylistId(playlist.id);
+      setActiveTab('playlist');
+
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+    } catch {
+      // Malformed URL param — ignore silently
+    }
+  }, [allSongs]);
+
 
   useEffect(() => {
     // Clear theme and video classes

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { usePlayer, Song, Playlist } from '../context/PlayerContext';
 import { getAudioUrl } from '../utils/cloudinary';
-import { Play, Heart, Music, MoreHorizontal, Trash2, ListMusic } from 'lucide-react';
+import { Play, Heart, Music, MoreHorizontal, Trash2, ListMusic, Share2, Check } from 'lucide-react';
 import AddToPlaylistModal from './AddToPlaylistModal';
 
 interface PlaylistViewProps {
@@ -13,6 +13,7 @@ const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId, goHome }) => {
   const { currentSong, isPlaying, playSong, togglePlayPause, playlists, likedSongs, toggleLike, setPlaylists, deletePlaylist, renamePlaylist, queue, setQueue, clearQueue } = usePlayer() as any;
   const [modalSong, setModalSong] = useState<Song | null>(null);
   const [showMenu, setShowMenu] = useState(false);
+  const [shareToast, setShareToast] = useState<'idle' | 'copied' | 'shared'>('idle');
 
   if (!playlistId) return <div className="main-view"></div>;
 
@@ -85,6 +86,44 @@ const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId, goHome }) => {
       renamePlaylist(playlistId, newName.trim());
     }
     setShowMenu(false);
+  };
+
+  const handleShare = async () => {
+    // Encode playlist: name + song IDs (songs are from the app's own library so IDs are enough)
+    const payload = {
+      n: title,
+      ids: songs.map((s: Song) => s.id),
+    };
+    const encoded = btoa(encodeURIComponent(JSON.stringify(payload)));
+    const shareUrl = `${window.location.origin}/?playlist=${encoded}`;
+
+    const shareData = {
+      title: `🎵 ${title} — TuneTastic`,
+      text: `Check out this playlist "${title}" with ${songs.length} songs on TuneTastic!`,
+      url: shareUrl,
+    };
+
+    // Use native share sheet on mobile (WhatsApp, Instagram etc.)
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        setShareToast('shared');
+        setTimeout(() => setShareToast('idle'), 2500);
+        return;
+      } catch (e) {
+        // user cancelled — do nothing
+        if ((e as Error).name === 'AbortError') return;
+      }
+    }
+
+    // Fallback: copy link to clipboard
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareToast('copied');
+      setTimeout(() => setShareToast('idle'), 2500);
+    } catch {
+      prompt('Copy this link to share:', shareUrl);
+    }
   };
 
   return (
@@ -177,6 +216,33 @@ const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId, goHome }) => {
             </button>
           )}
           
+          {!isLikedPlaylist && !isQueue && songs.length > 0 && (
+            <button
+              onClick={handleShare}
+              title="Share playlist"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                background: shareToast !== 'idle'
+                  ? 'rgba(29,185,84,0.15)'
+                  : 'rgba(255,255,255,0.08)',
+                border: `1px solid ${shareToast !== 'idle' ? 'var(--spotify-green)' : 'rgba(255,255,255,0.15)'}`,
+                borderRadius: 24,
+                color: shareToast !== 'idle' ? 'var(--spotify-green)' : '#fff',
+                padding: '10px 20px',
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: 'pointer',
+                transition: 'all 0.25s ease',
+                flexShrink: 0,
+              }}
+            >
+              {shareToast === 'copied' ? <Check size={16} /> : shareToast === 'shared' ? <Check size={16} /> : <Share2 size={16} />}
+              {shareToast === 'copied' ? 'Link Copied!' : shareToast === 'shared' ? 'Shared!' : 'Share'}
+            </button>
+          )}
+
           {!isLikedPlaylist && !isQueue && (
             <div style={{ position: 'relative' }}>
               <button 
@@ -206,6 +272,14 @@ const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId, goHome }) => {
                     Rename
                   </button>
                   <button 
+                    onClick={() => { setShowMenu(false); handleShare(); }}
+                    style={{ width: '100%', textAlign: 'left', padding: '12px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', gap: 8 }}
+                    onMouseOver={e => e.currentTarget.style.backgroundColor = '#333'}
+                    onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <Share2 size={14} /> Share Playlist
+                  </button>
+                  <button 
                     onClick={handleDelete} 
                     style={{ width: '100%', textAlign: 'left', padding: '12px', background: 'none', border: 'none', color: '#ff4d4d', cursor: 'pointer', fontSize: '14px' }}
                     onMouseOver={e => e.currentTarget.style.backgroundColor = '#333'}
@@ -218,6 +292,7 @@ const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId, goHome }) => {
             </div>
           )}
         </div>
+
 
         {songs.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '64px 24px', color: 'var(--text-secondary)' }}>
