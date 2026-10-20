@@ -1,0 +1,27 @@
+{
+  "id": "/",
+  "name": "TuneTastic — Merry Christmas! 🎄",
+  "short_name": "TuneTastic 🎄",
+  "description": "Your personal music app — wishing you a Merry Christmas!",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#001a08",
+  "theme_color": "#00C853",
+  "categories": ["music", "entertainment"],
+  "icons": [
+    {
+      "src": "/icon-christmas.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-christmas.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

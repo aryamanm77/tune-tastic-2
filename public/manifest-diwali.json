@@ -1,0 +1,27 @@
+{
+  "id": "/",
+  "name": "TuneTastic — Happy Diwali! 🪔",
+  "short_name": "TuneTastic 🪔",
+  "description": "Your personal music app — wishing you a joyful Diwali!",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0800",
+  "theme_color": "#FFB300",
+  "categories": ["music", "entertainment"],
+  "icons": [
+    {
+      "src": "/icon-diwali.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-diwali.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

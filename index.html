@@ -2,16 +2,48 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/icon-192.png" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#1db954" />
+
+    <!-- Dynamic festive icon + manifest switcher (like Duolingo) -->
+    <script>
+      (function () {
+        // IST date
+        var now = new Date();
+        var ist = new Date(now.getTime() + 5.5 * 3600000);
+        var m = ist.getUTCMonth() + 1;
+        var d = ist.getUTCDate();
+
+        var icon    = '/icon-192.png';
+        var manifest = '/manifest.json';
+        var themeColor = '#1db954';
+        var title   = 'TuneTastic Premium';
+
+        if      (m===1  && d<=2)           { icon='/icon-newyear.png';      manifest='/manifest-newyear.json';      themeColor='#FFD700'; title='TuneTastic 🎆'; }
+        else if (m===1  && d>=26 && d<=27) { icon='/icon-independence.png'; manifest='/manifest-independence.json'; themeColor='#FF9933'; title='TuneTastic 🇮🇳'; }
+        else if (m===2  && d>=14 && d<=15) { icon='/icon-192.png';          manifest='/manifest.json';              themeColor='#e91e8c'; title='TuneTastic 💖'; }
+        else if (m===3  && d>=1  && d<=3)  { icon='/icon-holi.png';         manifest='/manifest-holi.json';         themeColor='#FF4081'; title='TuneTastic 🎨'; }
+        else if (m===8  && d>=14 && d<=16) { icon='/icon-independence.png'; manifest='/manifest-independence.json'; themeColor='#FF9933'; title='TuneTastic 🇮🇳'; }
+        else if (m===10 && d>=15 && d<=27) { icon='/icon-diwali.png';       manifest='/manifest-diwali.json';       themeColor='#FFB300'; title='TuneTastic 🪔'; }
+        else if (m===12 && d>=24 && d<=26) { icon='/icon-christmas.png';    manifest='/manifest-christmas.json';    themeColor='#00C853'; title='TuneTastic 🎄'; }
+        else if (m===12 && d>=31)          { icon='/icon-newyear.png';      manifest='/manifest-newyear.json';      themeColor='#FFD700'; title='TuneTastic 🥂'; }
+
+        // Inject into <head>
+        document.write(
+          '<link rel="icon" type="image/png" href="' + icon + '">' +
+          '<link rel="apple-touch-icon" href="' + icon + '">' +
+          '<link rel="manifest" href="' + manifest + '">' +
+          '<meta name="theme-color" content="' + themeColor + '">'
+        );
+        document.title = title + ' — Web Player';
+      })();
+    </script>
+
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="TuneTastic" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>TuneTastic Premium — Web Player</title>
+
   </head>
   <body>
     <div id="root"></div>

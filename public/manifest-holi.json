@@ -1,0 +1,27 @@
+{
+  "id": "/",
+  "name": "TuneTastic — Happy Holi! 🎨",
+  "short_name": "TuneTastic 🎨",
+  "description": "Your personal music app — wishing you a colourful Holi!",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a0518",
+  "theme_color": "#FF4081",
+  "categories": ["music", "entertainment"],
+  "icons": [
+    {
+      "src": "/icon-holi.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-holi.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "/",
+  "name": "TuneTastic — Jai Hind! 🇮🇳",
+  "short_name": "TuneTastic 🇮🇳",
+  "description": "Your personal music app — Happy Independence Day!",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07160a",
+  "theme_color": "#FF9933",
+  "categories": ["music", "entertainment"],
+  "icons": [
+    {
+      "src": "/icon-independence.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-independence.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
