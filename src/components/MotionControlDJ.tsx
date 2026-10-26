@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Camera, CameraOff, Sparkles } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
+import { requestNativeCameraPermission } from '../utils/native-device';
 
 const MotionControlDJ: React.FC = () => {
   const { setDjState, isPlaying } = usePlayer();
@@ -15,6 +16,7 @@ const MotionControlDJ: React.FC = () => {
 
   const startCamera = async () => {
     try {
+      await requestNativeCameraPermission();
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;

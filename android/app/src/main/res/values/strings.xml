@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Tune Tastic</string>
+    <string name="title_activity_main">Tune Tastic</string>
+    <string name="package_name">com.aryaman.tunetastic</string>
+    <string name="custom_url_scheme">com.aryaman.tunetastic</string>
+</resources>

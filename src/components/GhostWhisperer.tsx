@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Ghost, Play } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
+import { canUseNativeDeviceFeatures, speakNatively, stopNativeSpeech } from '../utils/native-device';
 
 const GhostWhisperer: React.FC = () => {
   const { isPlaying } = usePlayer();
@@ -10,9 +11,14 @@ const GhostWhisperer: React.FC = () => {
 
   useEffect(() => {
     let active = true;
+    const useNativeSpeech = canUseNativeDeviceFeatures();
+    const speechSynthesis = window.speechSynthesis;
+
+    if (!useNativeSpeech && !speechSynthesis) return;
 
     if (!isWhispering || !isPlaying) {
-      window.speechSynthesis.cancel();
+      if (useNativeSpeech) void stopNativeSpeech();
+      else speechSynthesis.cancel();
       clearTimeout(timeoutRef.current);
       if (!isPlaying && isWhispering) setIsWhispering(false);
       return;
@@ -20,6 +26,11 @@ const GhostWhisperer: React.FC = () => {
 
     const speakLoop = () => {
       if (!active) return;
+      if (useNativeSpeech) {
+        void speakNatively(text);
+        timeoutRef.current = window.setTimeout(speakLoop, 6000);
+        return;
+      }
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.pitch = 0.5; 
       utterance.rate = 0.8; 
@@ -32,20 +43,21 @@ const GhostWhisperer: React.FC = () => {
         if (active) timeoutRef.current = window.setTimeout(speakLoop, 4000);
       };
 
-      window.speechSynthesis.speak(utterance);
+      speechSynthesis.speak(utterance);
     };
 
     speakLoop();
 
     return () => {
       active = false;
-      window.speechSynthesis.cancel();
+      if (useNativeSpeech) void stopNativeSpeech();
+      else speechSynthesis.cancel();
       clearTimeout(timeoutRef.current);
     };
   }, [isWhispering, text, isPlaying]);
 
   const handleWhisper = () => {
-    if (!('speechSynthesis' in window)) {
+    if (!canUseNativeDeviceFeatures() && !('speechSynthesis' in window)) {
       alert('Speech Synthesis not supported in this browser.');
       return;
     }

@@ -80,6 +80,27 @@ To run TuneTastic locally:
 
 4. Open your browser and navigate to `http://localhost:5173`.
 
+## 📱 Mobile Apps (Capacitor)
+
+TuneTastic can be built as a native Android or iOS app through Capacitor. The native projects use the same Vite production bundle as the web app.
+
+On Android, the launcher icon and app label automatically follow the same seasonal schedule as the web app. The icon updates when the app opens and is scheduled to refresh each day. iOS does not permit automatic launcher-icon changes, but its in-app festival experience remains the same.
+
+1. Build and synchronize the native projects:
+   ```bash
+   npm run cap:sync
+   ```
+2. Open Android Studio:
+   ```bash
+   npm run cap:android
+   ```
+3. Open Xcode (macOS only):
+   ```bash
+   npm run cap:ios
+   ```
+
+Run `npm run cap:sync` after changing web code before rebuilding from Android Studio or Xcode.
+
 ---
 
 ## 📝 License

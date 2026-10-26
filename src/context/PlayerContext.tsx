@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useRef, useEffect, useCallback, ReactNode } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { MediaSession as NativeMediaSession } from '@capgo/capacitor-media-session';
 import { getAudioUrl } from '../utils/cloudinary';
 import { getDownloadedSong, saveDownloadedSong, deleteDownloadedSong, getAllDownloadedSongs, getUploadedSong, saveUploadedSong, deleteUploadedSong, getAllUploadedSongs } from '../db';
+import { updateMusicWidget } from '../utils/music-widget';
 
 export interface Song {
   id: string;
@@ -664,6 +667,10 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   }, [isPlaying]);
 
+  useEffect(() => {
+    updateMusicWidget(currentSong, isPlaying);
+  }, [currentSong, isPlaying]);
+
   const playSong = async (song: Song, newQueue?: Song[]) => {
     // If user played a song that is in userQueue, remove it from queue
     setUserQueue(prev => prev.filter(s => s.id !== song.id));
@@ -955,6 +962,77 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       audioRef.current.playbackRate = rate;
     }
   };
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    const configureMediaControls = async () => {
+      await Promise.all([
+        NativeMediaSession.setActionHandler({ action: 'play' }, () => {
+          audioRef.current?.play().then(() => setIsPlaying(true)).catch(() => undefined);
+        }),
+        NativeMediaSession.setActionHandler({ action: 'pause' }, () => {
+          audioRef.current?.pause();
+          setIsPlaying(false);
+        }),
+        NativeMediaSession.setActionHandler({ action: 'nexttrack' }, () => nextSongRef.current()),
+        NativeMediaSession.setActionHandler({ action: 'previoustrack' }, () => prevSongRef.current()),
+        NativeMediaSession.setActionHandler({ action: 'seekbackward' }, () => {
+          if (!audioRef.current) return;
+          audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 15);
+        }),
+        NativeMediaSession.setActionHandler({ action: 'seekforward' }, () => {
+          if (!audioRef.current) return;
+          audioRef.current.currentTime = Math.min(audioRef.current.duration || Infinity, audioRef.current.currentTime + 15);
+        }),
+        NativeMediaSession.setActionHandler({ action: 'seekto' }, ({ seekTime }) => {
+          if (!audioRef.current || seekTime == null) return;
+          audioRef.current.currentTime = seekTime;
+        }),
+        NativeMediaSession.setActionHandler({ action: 'stop' }, () => {
+          audioRef.current?.pause();
+          if (audioRef.current) audioRef.current.src = '';
+          setCurrentSong(null);
+          setIsPlaying(false);
+        }),
+      ]);
+    };
+
+    void configureMediaControls().catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    if (!currentSong) {
+      void NativeMediaSession.setPlaybackState({ playbackState: 'none' }).catch(() => undefined);
+      return;
+    }
+
+    const artwork = currentSong.coverArt?.startsWith('http')
+      ? [{ src: currentSong.coverArt, sizes: '512x512', type: 'image/jpeg' }]
+      : [];
+
+    void NativeMediaSession.setMetadata({
+      title: currentSong.title,
+      artist: currentSong.artist,
+      album: currentSong.album || '',
+      artwork,
+    }).catch(() => undefined);
+    void NativeMediaSession.setPlaybackState({
+      playbackState: isPlaying ? 'playing' : 'paused',
+    }).catch(() => undefined);
+  }, [currentSong, isPlaying]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform() || !currentSong || duration <= 0) return;
+
+    void NativeMediaSession.setPositionState({
+      duration,
+      position: Math.min(currentTime, duration),
+      playbackRate: audioRef.current?.playbackRate || 1,
+    }).catch(() => undefined);
+  }, [currentSong, currentTime, duration]);
 
   return (
     <PlayerContext.Provider value={{

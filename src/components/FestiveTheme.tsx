@@ -75,52 +75,8 @@ const AmbientBokeh: React.FC<{ theme: FestiveTheme }> = ({ theme }) => {
   );
 };
 
-// ─────────────────────────────────────────────────────────────────
-// Festive Top Bar — always visible, no animation delay
-// Designed like Swiggy / Zomato's top offer bar
-// ─────────────────────────────────────────────────────────────────
 
-const FestiveBar: React.FC<{ theme: FestiveTheme }> = ({ theme }) => {
-  const g = theme.logoOverlay.glowColor;
 
-  return (
-    <div
-      id="festive-bar"
-      style={{
-        position: 'fixed',
-        top: 0, left: 0, right: 0,
-        height: 36,
-        zIndex: 99999,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 10,
-        /* Rich solid background — very clearly visible */
-        background: `linear-gradient(90deg, #1a1200 0%, ${g}40 40%, ${g}40 60%, #1a1200 100%)`,
-        borderBottom: `2px solid ${g}`,
-        boxShadow: `0 1px 20px ${g}60`,
-      }}
-    >
-      <span style={{ fontSize: 16 }}>{theme.emoji}</span>
-
-      <span style={{
-        color: g,
-        fontWeight: 700,
-        fontSize: 13,
-        letterSpacing: 0.3,
-        textShadow: `0 0 12px ${g}`,
-      }}>
-        {theme.name}
-      </span>
-
-      <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>
-        — {theme.message}
-      </span>
-
-      <span style={{ fontSize: 16 }}>{theme.emoji}</span>
-    </div>
-  );
-};
 
 // ─────────────────────────────────────────────────────────────────
 // Main Provider
@@ -140,7 +96,6 @@ const FestiveThemeProvider: React.FC = () => {
   return (
     <>
       <AmbientBokeh theme={theme} />
-      <FestiveBar theme={theme} />
       <style>{`
         body.festival-active input[type=range]::-webkit-slider-thumb {
           box-shadow: 0 0 6px ${theme.logoOverlay.glowColor}99 !important;

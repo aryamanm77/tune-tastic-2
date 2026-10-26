@@ -34,10 +34,18 @@
     "package": "npm run build && electron-builder --win",
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "cap:copy": "cap copy",
+    "cap:sync": "npm run build && cap sync",
+    "cap:android": "npm run cap:sync && cap open android",
+    "cap:ios": "npm run cap:sync && cap open ios",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/ios": "^8.5.3",
+    "@capgo/capacitor-media-session": "^8.1.5",
     "firebase": "^12.18.0",
     "idb": "^8.0.4",
     "lucide-react": "^0.300.0",
@@ -47,6 +55,7 @@
     "yt-search": "^2.13.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
