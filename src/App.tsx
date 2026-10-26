@@ -15,6 +15,7 @@ import DownloadsView from './components/DownloadsView';
 import UploadsView from './components/UploadsView';
 import CreatePlaylistModal from './components/CreatePlaylistModal';
 import FestiveThemeProvider from './components/FestiveTheme';
+import FestiveGreeting from './components/FestiveGreeting';
 import { getCurrentFestiveTheme } from './utils/festivals';
 
 const AppContent: React.FC = () => {
@@ -89,6 +90,7 @@ const AppContent: React.FC = () => {
     <>
       <NebulaBackground />
       <FestiveThemeProvider />
+      <FestiveGreeting />
       <div className="app-container" style={{ position: 'relative', zIndex: 10 }}>
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onOpenPlaylist={navigateToPlaylist} />
 
